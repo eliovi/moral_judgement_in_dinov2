@@ -2,7 +2,9 @@
 
 Language models pick up a sense of good and bad, and some moral judgment. That is not surprising: their training text is full of people explaining what is right and wrong. A vision model trained only on images, with no labels and no words, has no such teacher. Does it get there anyway?
 
-We think it does. We probe the embedding space of **DINOv2**, a self-supervised vision transformer, on 2,940 photos from the Socio-Moral Image Database (SMID). People rated each photo for how morally good or bad it is, and for how pleasant or unpleasant it is (valence).
+Closest to this work, [Zhu, Ramezani & Xu (2025)](https://arxiv.org/abs/2504.11473) showed that CLIP image embeddings predict human moral ratings of photos better than their captions do. But CLIP learned from image-caption pairs, so it could have absorbed morality from language. We take language out entirely.
+
+We think a language-free model does learn it. We probe the embedding space of **DINOv2**, a self-supervised vision transformer, on 2,940 photos from the Socio-Moral Image Database (SMID). People rated each photo for how morally good or bad it is, and for how pleasant or unpleasant it is (valence).
 
 ![DINOv2 orders images from bad to good](figures/story_hero.png)
 

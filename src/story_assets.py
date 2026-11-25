@@ -105,10 +105,11 @@ def main():
     ap.add_argument("--layer", type=int, default=36)
     ap.add_argument("--out", default="story")
     ap.add_argument("--skip-words", action="store_true", help="testing only")
+    ap.add_argument("--only-examples", action="store_true", help="skip W and P (already computed), make the example images")
     a = ap.parse_args()
     out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
     res = {}
-    save = lambda: json.dump(res, open(out / "story_numbers.json", "w"), indent=1)
+    save = lambda: json.dump(res, open(out / ("story_examples_meta.json" if a.only_examples else "story_numbers.json"), "w"), indent=1)
 
     lab = pd.read_csv(f"{a.features}/smid_labels.csv")
     val, mor = lab.valence.to_numpy(float), lab.morality.to_numpy(float)
@@ -123,7 +124,7 @@ def main():
 
     # ---- W: words, through a map fit on COCO only
     print("W words", flush=True)
-    if not a.skip_words:
+    if not (a.skip_words or a.only_examples):
         words_section(a, dino, val, targets, pred, res)
         save()
 
@@ -131,7 +132,7 @@ def main():
     print("P shared direction", flush=True)
     res["P"] = []
     kf = list(KFold(5, shuffle=True, random_state=0).split(C))
-    for m in ["S", "B", "L", "G"]:
+    for m in ([] if a.only_examples else ["S", "B", "L", "G"]):
         F = np.load(f"{a.features}/{m}_smid.npy", mmap_mode="r"); L = F.shape[0]
         for d in [0.25, 0.5, 0.75, 0.9, 1.0]:
             l = max(0, int(round(d * L)) - 1)
@@ -148,8 +149,9 @@ def main():
                 row[f"top10pc_{t}"] = round(float(spearmanr(y, oof(Z, y, k=10))[0]), 4)
             res["P"].append(row); print(" ", row, flush=True)
             save()
-    res["P_clip_within"] = {t: round(float(spearmanr(y, oof(C, y))[0]), 4) for t, y in targets.items()}
-    save()
+    if not a.only_examples:
+        res["P_clip_within"] = {t: round(float(spearmanr(y, oof(C, y))[0]), 4) for t, y in targets.items()}
+        save()
 
     # ---- E: example images
     if a.smid_dir:

@@ -1,0 +1,21 @@
+test,quantity,value,ci_lo,ci_hi
+D1,dinov2_rho_on_mbv_ctrl,0.1631,0.1281,0.1961
+D1,analytic_p,5.6e-19,,
+D1,perm_null_mean,-0.0036,,
+D1,perm_null_sd,0.0259,,
+D1,perm_null_max_of_200,0.0483,,
+D1,perm_z,6.45,,
+D1,perm_p,0.005 (0 of 200 shuffles reached it),,
+D2,reliability_valence,0.9698,,
+D2,reliability_morality,0.9540,,
+D2,reliability_mbv,0.7020,,
+D2,reliability_mbv_ctrl,0.5527,,
+D2,noise_ceiling_rho_mbv_ctrl,0.7434,,
+D2,noise_ceiling_rho_mbv_ctrl_if_errors_fully_correlated,0.3821,,
+D2,dinov2_share_of_ceiling_valence,0.7724,,
+D2,dinov2_share_of_ceiling_mbv,0.7267,,
+D2,dinov2_share_of_ceiling_mbv_ctrl,0.2194,,
+D3,rho_more_precise_half_by_se,0.1929,0.1472,0.2330
+D3,rho_less_precise_half_by_se,0.1360,0.0865,0.1856
+D5,clip_rho_on_mbv_ctrl,0.3748,0.3439,0.4045
+D5,clip_plus_dinov2_rho_on_mbv_ctrl,0.2893,0.2570,0.3253

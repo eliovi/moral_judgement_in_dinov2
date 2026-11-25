@@ -1,0 +1,8 @@
+rating,with_morality,with_mbv,with_mbv_ctrl,controls_predict_rating
+harm,0.0133,0.4351,0.2592,0.656
+fairness,-0.1002,0.3551,0.1490,0.6138
+ingroup,0.2903,0.4726,0.2320,0.6921
+authority,0.2786,0.5283,0.2434,0.7157
+purity,-0.1325,0.3756,0.1764,0.6487
+arousal,-0.4573,0.0924,0.0016,0.6505
+valence,0.8652,0.0251,0.0366,0.6894

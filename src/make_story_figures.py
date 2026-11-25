@@ -63,7 +63,60 @@ def depth():
     fig.savefig(FIG / "story_depth_scale.png", dpi=170); plt.close(fig)
 
 
+def words():
+    """What DINOv2's directions mean, read through a map into CLIP that never saw SMID."""
+    W = json.load(open(R / "story" / "words.json"))
+    fig, ax = plt.subplots(1, 2, figsize=(12, 6.2))
+    fig.subplots_adjust(top=0.74, bottom=0.12, left=0.04, right=0.98, wspace=0.08)
+    title(fig, "What DINOv2's good/bad direction means, in words",
+          "DINOv2 features translated into CLIP's image-text space with a map learned on unrated COCO photos.\n"
+          "Words that best match images DINOv2 scores high (blue) and low (orange). Vocabulary: 150 virtues, vices, emotions, everyday things.")
+    panels = [("morality", "Morally good vs bad",
+               f"virtue words beat vice words {W['morality']['auc_virtue_vs_vice']:.0%} of the time"),
+              ("morality_beyond_valence", "Morally good, beyond just pleasant",
+               f"virtue words beat merely pleasant words {W['morality_beyond_valence']['auc_virtue_vs_positive_emotion']:.0%} of the time")]
+    for a, (k, head, foot) in zip(ax, panels):
+        a.axis("off"); a.set_xlim(0, 1); a.set_ylim(0, 1)
+        a.text(0.0, 0.98, head, fontsize=14, color=INK, weight="bold", va="top")
+        a.text(0.02, 0.88, "DINOv2 scores high", fontsize=11, color=BLUE, va="top")
+        a.text(0.52, 0.88, "DINOv2 scores low", fontsize=11, color="#e76624", va="top")
+        for i, (hi, lo) in enumerate(zip(W[k]["top"], W[k]["bottom"])):
+            y = 0.78 - i * 0.085
+            a.text(0.02, y, hi, fontsize=14, color=DARK, va="top")
+            a.text(0.52, y, lo, fontsize=14, color="#b4470f", va="top")
+        a.text(0.0, 0.06, foot, fontsize=11, color=INK2, va="top", style="italic")
+    fig.savefig(FIG / "story_words.png", dpi=170); plt.close(fig)
+
+
+def shared():
+    """CLIP's good/bad direction is found inside DINOv2, more so deeper and in larger models."""
+    P = pd.read_csv(R / "story" / "shared_direction.csv", comment="#")
+    fig, ax = plt.subplots(1, 2, figsize=(12, 5.2), gridspec_kw={"width_ratios": [1.6, 1]})
+    fig.subplots_adjust(top=0.72, bottom=0.14, left=0.07, right=0.97, wspace=0.3)
+    title(fig, "Two very different models end up with the same good/bad direction",
+          "CLIP learned from 400M captioned images; DINOv2 never saw a word. Left: CLIP's morality direction, applied to DINOv2\n"
+          "through a translation learned without any ratings. Right: how much of the rating DINOv2's own 10 main axes carry.")
+    a = ax[0]
+    for m, (name, c) in SIZES.items():
+        d = P[P.model == m]
+        a.plot(d.depth, d.clip_dir_morality, color=c, lw=2.6, marker="o", ms=5)
+        off = {"G": 0.028, "L": 0.0, "B": -0.01}.get(m, 0)
+        a.text(1.03, d.clip_dir_morality.iloc[-1] + off, name, color=c, va="center", fontsize=11)
+    a.set_xlim(0.2, 1.22); a.set_ylim(0.3, 0.8); a.set_xticks([0.25, 0.5, 0.75, 1]); a.set_xticklabels(["25%", "50%", "75%", "last layer"])
+    a.set_ylabel("ρ with human morality ratings"); a.grid(axis="y", color=GRID); a.set_axisbelow(True)
+    a.set_title("CLIP's direction, read inside DINOv2", loc="left", color=INK, fontsize=13)
+    a = ax[1]
+    best = [P[P.model == m].top10pc_valence.max() for m in SIZES]
+    a.bar(range(4), best, color=[c for _, c in SIZES.values()], width=0.62)
+    for i, v in enumerate(best):
+        a.text(i, v + 0.012, f"{v:.2f}", ha="center", fontsize=12, color=INK)
+    a.set_xticks(range(4)); a.set_xticklabels([n.split(",")[0] for n, _ in SIZES.values()])
+    a.set_ylim(0, 0.75); a.set_ylabel("ρ with valence ratings"); a.grid(axis="y", color=GRID); a.set_axisbelow(True)
+    a.set_title("Valence in DINOv2's top 10 axes", loc="left", color=INK, fontsize=13)
+    fig.savefig(FIG / "story_shared.png", dpi=170); plt.close(fig)
+
+
 if __name__ == "__main__":
     FIG.mkdir(exist_ok=True)
-    controls(); depth()
+    controls(); depth(); words(); shared()
     print("saved")

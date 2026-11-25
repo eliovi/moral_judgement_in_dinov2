@@ -1,96 +1,65 @@
-# Valence in visual models
+# Does a vision model know good from bad?
 
-Language models learn something like a concept of good and bad from human text. This repo asks whether a vision model trained only on images, with no labels and no language, learns it too.
+Language models pick up a sense of good and bad, and some moral judgment. That is not surprising: their training text is full of people explaining what is right and wrong. A vision model trained only on images, with no labels and no words, has no such teacher. Does it get there anyway?
 
-We probe DINOv2, a self-supervised vision transformer, on the Socio-Moral Image Database (SMID): 2,940 photos rated by people for how pleasant they are (valence) and how morally good or bad the depicted scene is (morality). A linear probe on frozen DINOv2 features predicts both ratings well. The signal survives removing image statistics and object identity, it forms late in the network, and it grows with model size faster than object recognition does.
+We think it does. We probe the embedding space of **DINOv2**, a self-supervised vision transformer, on 2,940 photos from the Socio-Moral Image Database (SMID). People rated each photo for how morally good or bad it is, and for how pleasant or unpleasant it is (valence).
 
-![Headline results](figures/fig_headline.png)
+![DINOv2 orders images from bad to good](figures/story_hero.png)
 
-## Main findings
+A linear probe on frozen DINOv2 features predicts the human morality rating at ρ = 0.74 on held-out images (valence: 0.76).
 
-All numbers are Spearman ρ between held-out probe predictions and the mean human rating (5-fold, out-of-fold), with 95% bootstrap intervals where given. "Controls" means low-level image statistics, the 1,000 ImageNet logits of a supervised ViT, and that ViT's final features, removed with a cross-fitted linear probe.
+## "It's just dark images and scary objects"
 
-1. **DINOv2 tracks both ratings.** The largest model (ViT-g, 1.1B parameters) reaches ρ = 0.76 for valence and 0.74 for morality. Separating the top third of images from the bottom third gives AUROC 0.94 for each.
-2. **It is more than objects and image statistics.** After the controls, DINOv2 still predicts valence at 0.36 (0.32 to 0.39) and morality at 0.32 (0.29 to 0.35). Within clusters of images that share object content, it ranks valence at 0.67, against 0.55 for the control features themselves. Trained on some object groups and tested on unseen ones, it drops only from 0.76 to 0.74, while a probe on object features alone gets 0.59 (panel D).
-3. **It forms late and grows with scale.** Object content is readable from the first layers. The moral signal left after removing valence and the controls is at or below zero for the first 60% of the network in every size, then rises in the last third (panel B). From the smallest to the largest model it grows by 0.11 (0.07 to 0.14), while object content grows by 0.01 (panel C).
-4. **Part of morality is separate from pleasantness.** That leftover moral signal is small but real: ρ = 0.16 (0.13 to 0.20), and none of 200 label shuffles reached 0.05. Images rated more moral than their pleasantness predicts line up with CLIP words such as compassion, respect, care, grief and nurse. Images rated less moral than predicted line up with fun, phone, horse, car and cat. In other words, the model separates scenes of care during suffering from pleasant but morally neutral scenes.
-5. **The direction is shared with a language-trained model.** A linear map from DINOv2 to CLIP, fit on 5,000 unrated COCO photos, lets CLIP's valence probe read valence from DINOv2 features at 0.66 (DINOv2's own probe: 0.76). With a map fit on the SMID images themselves, DINOv2's valence direction ranks CLIP words from love, peace and kindness to war, murder and pain. The COCO-fit map reproduces the valence result but not a clean match to moral wording, so treat the word lists as illustration.
+A fair suspicion. So we remove those explanations one at a time: first brightness, colour and texture, then object identity (the 1,000 ImageNet classes), then everything a supervised image classifier sees. The signal shrinks but stays well above chance. The same holds for the part of morality that has nothing to do with pleasantness (right).
 
-## What this does not show
+![Not just dark images or scary objects](figures/story_controls.png)
 
-- **The morality-specific part does not survive the strictest control.** Removing everything the control features predict, linearly and with k-NN and gradient boosting stacked, leaves valence at 0.23 and morality at 0.20, but the part of morality beyond valence drops to 0.03 (not significant). The supervised ViT in the controls carries some of this signal itself, so this control removes more than objects. CLIP keeps 0.29 under the same control.
-- **CLIP is stronger.** CLIP image features beat DINOv2 everywhere, for example 0.37 against 0.16 on the leftover moral signal. Language supervision helps.
-- **The size comparison uses distilled models.** DINOv2's smaller models are distilled from the 1.1B model, so "larger" partly means "keeps more of the teacher". Separately trained sizes would make a cleaner test.
-- **One dataset.** All ratings come from SMID. A second rated image set would test generality.
-- **Not yet run:** a randomly initialised DINOv2 baseline and a larger DINOv2-to-CLIP map fit on Places365. Both need a GPU and are in step 16 of the notebook.
-- **Probe, not judgment.** A probe shows that the information is linearly readable. It does not show that the model uses it or judges anything.
+## "It's not morality, it's just pleasant vs unpleasant"
 
-## What the ratings look like
+Morality and pleasantness are strongly correlated in SMID (0.87), so this is the harder objection. Removing pleasantness from the morality rating leaves a smaller signal, and DINOv2 still predicts it: ρ = 0.61, and 0.16 after also removing objects, where no run on shuffled labels out of 200 got above 0.05. What it picks up is intuitive. Rescue workers, firefighters and nurses are unpleasant to look at but morally good; burgers, cash and sports cars are pleasant but not especially good.
 
-Five SMID images per scale, ordered from low to high rating. SMID includes disturbing images.
+![Morality is not just pleasantness](figures/story_offdiagonal.png)
 
-![SMID gallery](figures/fig_gallery_valence_morality_arousal.png)
+## "Are these labels really about morality?"
 
-## Method
+Ratings are noisy, so we asked DINOv2's direction what it means, in words. We translate DINOv2's features into CLIP's shared image-text space with a linear map learned on unrated COCO photos; the map never sees SMID or any rating. Then we check which words best match the images DINOv2 scores high and low, from a fixed vocabulary of 150 virtues, vices, emotions and everyday things.
 
-- **Models.** DINOv2 ViT-S/14, B/14, L/14 and g/14 (`facebook/dinov2-*` on Hugging Face). Each image's feature at a layer is the CLS token concatenated with the mean patch token. References: CLIP ViT-L/14 and a supervised ViT-B/16 (`google/vit-base-patch16-224`).
-- **Probe.** Standardise, PCA to 256 dimensions, ridge regression with the penalty chosen by internal cross-validation; 5-fold out-of-fold predictions.
-- **Controls.** 57 low-level image statistics, such as brightness, contrast, colourfulness and edge density, ImageNet logits and supervised-ViT features. They are removed from the rating with cross-fitted predictions, and the DINOv2 probe is then trained on what is left.
-- **Morality beyond valence.** The morality rating minus a cubic-spline fit on valence. Image-level valence and morality correlate at 0.87, so this part is about a quarter of the morality variance. About 30% of it is rater noise, estimated from SMID's per-image standard errors.
-- **Cross-model map.** Ridge regression from DINOv2-g layer 37 to CLIP image embeddings, fit only on unrated COCO val2017 photos, then applied unchanged to SMID.
+![What DINOv2's direction means in words](figures/story_words.png)
+
+The morality direction reads as fairness, volunteering and helping others against decay, neglect and vandalism. The "good beyond pleasant" direction reads as volunteering, heroism, cooperation and respect against beauty, pets, pizza and flowers: virtue words beat merely pleasant words 84% of the time. One surprise in that list is "slavery" in fifth place, likely from SMID's historical and memorial photos.
+
+## How does a model that never saw a word learn this?
+
+**It forms late, and grows with scale.** Object identity is readable from DINOv2's first layers. The moral signal, after removing pleasantness and objects, is absent for the first half of the network, appears in the last third, and is stronger in larger models.
+
+![It appears in the last layers and grows with size](figures/story_depth_scale.png)
+
+**Different models converge on the same direction.** CLIP learned good vs bad from captions; DINOv2 never saw one. Yet CLIP's morality direction, carried into DINOv2 through a translation learned without any ratings, predicts morality from DINOv2's features at 0.73, nearly as well as DINOv2's own probe (0.74). The agreement grows with depth and with model size, and good vs bad takes up more of DINOv2's ten main axes in larger models.
+
+![Two models, one direction](figures/story_shared.png)
+
+Our reading: good vs bad is part of the structure of the world people photograph (who helps, who harms, what happens to whom), so a model that learns that world well enough ends up representing it. This fits the [Platonic Representation Hypothesis](https://arxiv.org/abs/2405.07987) and the [Natural Abstraction Hypothesis](https://www.lesswrong.com/posts/Fut8dtFsBYRz8atFF/the-natural-abstraction-hypothesis-implications-and-evidence). It is one dataset and a linear probe, so treat it as evidence, not proof.
+
+## Caveats
+
+- One rated dataset (SMID). A second one would test how general this is.
+- DINOv2's smaller models are distilled from the largest, so the size trend is partly about how much of the teacher a student keeps.
+- CLIP, trained with language, is stronger everywhere. Under the strictest control (non-linear removal of everything a supervised classifier sees), the morality-beyond-pleasantness signal in DINOv2 is no longer significant.
+- A probe shows the information is there and linearly readable, not that the model uses it.
 
 ## Reproduce
 
-Everything runs in Google Colab from [`notebooks/valence_probe_colab.ipynb`](notebooks/valence_probe_colab.ipynb). The notebook downloads the scripts from this repo and saves features and results to Google Drive, so a dropped runtime only loses the step that was running.
+Everything runs in Google Colab from [`notebooks/valence_probe_colab.ipynb`](notebooks/valence_probe_colab.ipynb). Accept the SMID terms on [Hugging Face](https://huggingface.co/datasets/AIML-TUDA/smid) and add a read token as a Colab secret named `HF_TOKEN`. Feature extraction (steps 1 to 5, 9 and 12) needs a GPU. The analysis steps run on CPU and save everything to Google Drive, so a dropped runtime only loses the step that was running.
 
-Before you start:
-1. Accept the SMID terms at [huggingface.co/datasets/AIML-TUDA/smid](https://huggingface.co/datasets/AIML-TUDA/smid).
-2. Add a Hugging Face read token as a Colab secret named `HF_TOKEN`.
-3. Use a GPU runtime for the feature-extraction steps. The analysis steps run on CPU.
-
-| Notebook step | What it does | Runtime |
-|---|---|---|
-| 1 to 5 | Download SMID, extract per-layer DINOv2 features for all four sizes, delete the images | GPU, about 25 min |
-| 6 and 7 | Probes per layer and size, scaling figure | CPU, 1 to 2 h |
-| 8 | Rating gallery | CPU |
-| 9 | Control features (image statistics, supervised ViT) and CLIP embeddings | GPU, about 10 min |
-| 10 and 11 | Probes after controls, CLIP language axes, robustness of morality beyond valence | CPU, about 25 min |
-| 12 | DINOv2-to-CLIP map fit on COCO | GPU 6 min, then CPU 8 min |
-| 15 | Significance and noise ceilings for the moral signal, round-3 analysis | CPU, about 35 min |
-| 16 | Non-linear controls, held-out object groups, size and depth after controls, alignment with CLIP; GPU-only extras if a GPU is present | CPU, about 35 min |
-
-To redraw the headline figure from the saved tables:
+To redraw the figures from the saved tables:
 
 ```bash
-pip install pandas matplotlib
-python src/make_figure_headline.py
+pip install pandas matplotlib pillow
+python src/make_story_figures.py
 ```
 
-### Repository layout
+Result tables are in [`results/`](results) and the scripts in [`src/`](src).
 
-| Path | Contents |
-|---|---|
-| `src/extract_features.py`, `src/extract_controls_clip.py`, `src/extract_round3.py` | Feature extraction (GPU) |
-| `src/run_probes.py` | Per-layer probes across model sizes |
-| `src/analyze_controls_clip.py`, `src/coco_translation.py`, `src/analyze_round3.py` | Controls, CLIP map, language axes |
-| `src/morality_diagnostics.py` | Permutation test, noise ceiling, content of the moral signal |
-| `src/strengthen.py`, `src/scale_depth.py` | Non-linear controls, held-out object groups, size and depth after controls |
-| `results/` | All result tables as CSV |
-| `figures/` | Figures, with the scripts that draw them in `src/make_figure_*.py` |
+## Credits
 
-## Data and licensing
-
-SMID images are not redistributed here, except the 15 thumbnails in the gallery figure. They come from the Socio-Moral Image Database (Crone, Bode, Murawski & Laham, 2018, PLOS ONE). Individual images are Creative Commons licensed, with per-image credits in SMID's documentation. SMID contains disturbing images.
-
-## Related work
-
-- Huh, Cheung, Wang & Isola, [The Platonic Representation Hypothesis](https://arxiv.org/abs/2405.07987) (2024): representations of different models converge as they scale.
-- Jha et al., [Harnessing the Universal Geometry of Embeddings](https://arxiv.org/abs/2505.12540) (2025): unsupervised translation between embedding spaces.
-- Tasker, Betser, Gofer, Levi & Gilboa, [The Universal Normal Embedding](https://arxiv.org/abs/2603.21786) (2026): a shared Gaussian latent space for vision encoders.
-- Zhu, Ramezani & Xu, *Visual moral inference and communication* (CogSci 2025): CLIP probes on SMID.
-- Schramowski et al., [Q16](https://arxiv.org/abs/2202.06675) (2022): CLIP prompt-tuning on SMID for inappropriate-content detection.
-- Oquab et al., [DINOv2](https://arxiv.org/abs/2304.07193) (2023).
-
-## Acknowledgements
-
-Thanks to Damien Crone and colleagues for SMID and its rating data, and to AIML-TUDA for hosting it on Hugging Face. DINOv2 is from Meta AI, CLIP from OpenAI, and the supervised ViT from Google; all were used through Hugging Face Transformers. COCO and Places365 photos were used, unrated, to fit the cross-model maps. Compute was Google Colab. Code, analysis and drafts were developed with help from Claude (Anthropic).
+SMID is by Crone, Bode, Murawski and Laham (2018, PLOS ONE), hosted on Hugging Face by AIML-TUDA. Its images are Creative Commons licensed and are not redistributed here beyond the thumbnails in the figures. DINOv2 is from Meta AI, CLIP from OpenAI and the supervised ViT from Google, all used through Hugging Face Transformers. COCO photos were used, unrated, to fit the DINOv2-to-CLIP map. Compute was Google Colab. Built with help from Claude (Anthropic).

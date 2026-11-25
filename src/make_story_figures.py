@@ -28,7 +28,7 @@ def controls():
     fig.subplots_adjust(top=0.72, bottom=0.2, left=0.06, right=0.98, wspace=0.12)
     title(fig, "Not just dark images or scary objects",
           "How well a linear probe on DINOv2 predicts people's ratings (Spearman ρ, held-out images), as we remove explanations one by one.\n"
-          "The dashed line is the best score shuffled ratings reached in 200 tries.")
+          "Dashed line: the best score 200 runs with shuffled ratings reached on the hardest target (right, last bar).")
     for a, vals, name in [(ax[0], mor, "Morality rating"), (ax[1], mbv, "Morality, with valence removed")]:
         cols = [DARK] + [BLUE] * 3
         a.bar(range(4), vals, color=cols, width=0.62)
@@ -116,7 +116,61 @@ def shared():
     fig.savefig(FIG / "story_shared.png", dpi=170); plt.close(fig)
 
 
+ORANGE = "#e76624"
+
+
+def _crop(path, ratio=4 / 3):
+    from PIL import Image
+    im = Image.open(path).convert("RGB"); w, h = im.size
+    if w / h > ratio:
+        nw = int(h * ratio); im = im.crop(((w - nw) // 2, 0, (w - nw) // 2 + nw, h))
+    else:
+        nh = int(w / ratio); im = im.crop((0, (h - nh) // 2, w, (h - nh) // 2 + nh))
+    return im
+
+
+def hero():
+    """Five SMID photos in the order DINOv2 places them, from morally bad to good."""
+    P = pd.read_csv(R / "story" / "example_picks.csv")
+    P = P[P.group == "hero"].sort_values("dinov2_morality_percentile")
+    fig = plt.figure(figsize=(13, 4.6))
+    title(fig, "A vision model that never saw a label or a word orders images from bad to good",
+          "SMID photos in the order a linear probe on DINOv2 places them. Below each: the average human morality rating (1 = very bad, 5 = very good).")
+    n = len(P); w = 0.94 / n
+    for i, r in enumerate(P.itertuples()):
+        a = fig.add_axes([0.03 + i * w, 0.27, w - 0.012, 0.5])
+        a.imshow(_crop(R / "story" / "thumbs" / f"{r.image}.jpg")); a.axis("off")
+        fig.text(0.03 + i * w + (w - 0.012) / 2, 0.2, f"people: {r.morality_rating:.1f}", ha="center", fontsize=12, color=INK)
+    import numpy as np
+    a = fig.add_axes([0.03, 0.08, 0.928, 0.04])
+    a.imshow(np.linspace(0, 1, 256)[None, :], aspect="auto", cmap=__import__("matplotlib").colors.LinearSegmentedColormap.from_list("g", [ORANGE, "#d9d9d9", DARK]))
+    a.set_xticks([]); a.set_yticks([]); [sp.set_visible(False) for sp in a.spines.values()]
+    fig.text(0.03, 0.015, "DINOv2: morally bad", color=ORANGE, fontsize=12, weight="bold")
+    fig.text(0.958, 0.015, "DINOv2: morally good", color=DARK, fontsize=12, weight="bold", ha="right")
+    fig.savefig(FIG / "story_hero.png", dpi=170); plt.close(fig)
+
+
+def offdiag():
+    """Where morality and pleasantness disagree."""
+    P = pd.read_csv(R / "story" / "example_picks.csv")
+    fig = plt.figure(figsize=(13, 8.2))
+    title(fig, "Morality is not just pleasantness, and DINOv2 knows the difference",
+          "Images DINOv2 scores highest and lowest on morality after removing pleasantness (valence). People agree.\n"
+          "Numbers are average human ratings from 1 to 5.")
+    rows = [("good_but_unpleasant", "Morally good, though unpleasant", DARK, 0.42),
+            ("pleasant_not_moral", "Pleasant, but not especially good", ORANGE, 0.03)]
+    for g, head, col, y0 in rows:
+        d = P[P.group == g]
+        fig.text(0.03, y0 + 0.335, head, fontsize=14, color=col, weight="bold")
+        for i, r in enumerate(d.itertuples()):
+            a = fig.add_axes([0.03 + i * 0.237, y0 + 0.05, 0.225, 0.27])
+            a.imshow(_crop(R / "story" / "thumbs" / f"{r.image}.jpg")); a.axis("off")
+            fig.text(0.03 + i * 0.237 + 0.1125, y0 + 0.012, f"pleasant {r.valence_rating:.1f}  ·  moral {r.morality_rating:.1f}",
+                     ha="center", fontsize=11.5, color=INK)
+    fig.savefig(FIG / "story_offdiagonal.png", dpi=170); plt.close(fig)
+
+
 if __name__ == "__main__":
     FIG.mkdir(exist_ok=True)
-    controls(); depth(); words(); shared()
+    controls(); depth(); words(); shared(); hero(); offdiag()
     print("saved")

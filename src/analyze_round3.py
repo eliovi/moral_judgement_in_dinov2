@@ -72,15 +72,20 @@ def main():
     targets = {"valence": val, "morality": mor, "morality_beyond_valence": mbv}
     res = {"n_images": len(lab), "layer": a.layer + 1, "mbv_definition": "morality minus a cubic-spline fit on valence"}
 
-    rand = np.load(f"{a.round3}/random_init_G_smid.npy").astype(np.float32)
-    rlayers = [int(l) for l in np.load(f"{a.round3}/random_init_layers.npy")]
-
-    # ---- T3 random-init baseline
-    print("T3 random init", flush=True)
-    res["T3_random_init"] = {f"layer_{l + 1}": {t: rho_ci(y, oof(rand[i], y), n=300) for t, y in targets.items()} for i, l in enumerate(rlayers)}
+    import os
+    has_rand = os.path.exists(f"{a.round3}/random_init_G_smid.npy")
+    has_places = os.path.exists(f"{a.round3}/places_clip.npy")
+    res["available"] = {"random_init": has_rand, "places": has_places}
     res["T3_trained_reference"] = {t: rho_ci(y, oof(dino, y), n=300) for t, y in targets.items()}
-    print(" ", {k: {t: v["rho"] for t, v in d.items()} for k, d in res["T3_random_init"].items()}, flush=True)
-    best_rand = max(range(len(rlayers)), key=lambda i: res["T3_random_init"][f"layer_{rlayers[i] + 1}"]["valence"]["rho"])
+    rand = None
+    if has_rand:
+        rand = np.load(f"{a.round3}/random_init_G_smid.npy").astype(np.float32)
+        rlayers = [int(l) for l in np.load(f"{a.round3}/random_init_layers.npy")]
+        print("T3 random init", flush=True)
+        res["T3_random_init"] = {f"layer_{l + 1}": {t: rho_ci(y, oof(rand[i], y), n=300) for t, y in targets.items()} for i, l in enumerate(rlayers)}
+        print(" ", {k: {t: v["rho"] for t, v in d.items()} for k, d in res["T3_random_init"].items()}, flush=True)
+        best_rand = max(range(len(rlayers)), key=lambda i: res["T3_random_init"][f"layer_{rlayers[i] + 1}"]["valence"]["rho"])
+        rand = rand[best_rand]
 
     # ---- T1 morality beyond valence after controls
     print("T1 morality beyond valence after controls", flush=True)
@@ -92,8 +97,9 @@ def main():
             pc = oof(X, y); r = y - pc
             res["T1"][cname][t] = {"controls_alone": round(float(spearmanr(y, pc)[0]), 4),
                                    "dinov2_on_residual": rho_ci(r, oof(dino, r), n=300),
-                                   "clip_on_residual": rho_ci(r, oof(C, r), n=300),
-                                   "random_init_on_residual": rho_ci(r, oof(rand[best_rand], r), n=300)}
+                                   "clip_on_residual": rho_ci(r, oof(C, r), n=300)}
+            if rand is not None:
+                res["T1"][cname][t]["random_init_on_residual"] = rho_ci(r, oof(rand, r), n=300)
         print(" ", cname, {t: v["dinov2_on_residual"]["rho"] for t, v in res["T1"][cname].items()}, flush=True)
 
     # ---- T2a unsupervised structure of DINOv2
@@ -116,8 +122,9 @@ def main():
     res["T2a"]["kmeans_eta2"] = {}
     reps = {"dinov2": S[:, :50], "lowlevel": PCA(20, random_state=0).fit_transform(StandardScaler().fit_transform(ll)),
             "supervised_vit": PCA(50, random_state=0).fit_transform(StandardScaler().fit_transform(sup)),
-            "clip": PCA(50, random_state=0).fit_transform(StandardScaler().fit_transform(C)),
-            "random_init": PCA(50, random_state=0).fit_transform(StandardScaler().fit_transform(rand[best_rand]))}
+            "clip": PCA(50, random_state=0).fit_transform(StandardScaler().fit_transform(C))}
+    if rand is not None:
+        reps["random_init"] = PCA(50, random_state=0).fit_transform(StandardScaler().fit_transform(rand))
     for rep, F in reps.items():
         res["T2a"]["kmeans_eta2"][rep] = {}
         for k in [2, 5, 10, 20, 50]:
@@ -128,8 +135,10 @@ def main():
 
     # ---- maps fit on unrated photos
     Dc = np.load(f"{a.coco}/coco_dinov2G_L37.npy").astype(np.float32); Cc = np.load(f"{a.coco}/coco_clip.npy").astype(np.float64)
-    Dp = np.load(f"{a.round3}/places_dinov2G_L37.npy").astype(np.float32); Cp = np.load(f"{a.round3}/places_clip.npy").astype(np.float64)
-    maps = {"coco": (Dc, Cc), "coco+places": (np.vstack([Dc, Dp]), np.vstack([Cc, Cp]))}
+    maps = {"coco": (Dc, Cc)}
+    if has_places:
+        Dp = np.load(f"{a.round3}/places_dinov2G_L37.npy").astype(np.float32); Cp = np.load(f"{a.round3}/places_clip.npy").astype(np.float64)
+        maps["coco+places"] = (np.vstack([Dc, Dp]), np.vstack([Cc, Cp]))
 
     # ---- T5 language tests with each map
     print("T5 language tests", flush=True)
@@ -142,10 +151,12 @@ def main():
         ax = res["T5"][name]["text_axes"]
         print(" ", name, res["T5"][name]["translation"], {k: (v["valence|morality"], v["morality|valence"]) for k, v in ax.items() if "mean axis" in k}, flush=True)
 
-    # ---- T2b cross-model direction transfer (map fit on coco+places, never on SMID or ratings)
-    print("T2b cross-model transfer", flush=True)
-    Dm, Cm = maps["coco+places"]
-    d2c = fitted["coco+places"]; c2d = fit_map(Cm, Dm.astype(np.float64))
+    # ---- T2b cross-model direction transfer (map fit on unrated photos, never on SMID or ratings)
+    mname = "coco+places" if has_places else "coco"
+    print("T2b cross-model transfer, map:", mname, flush=True)
+    res["T2b_map"] = mname
+    Dm, Cm = maps[mname]
+    d2c = fitted[mname]; c2d = fit_map(Cm, Dm.astype(np.float64))
     Dto_c = l2n(d2c.predict(dino)); Cto_d = c2d.predict(C)
     kf = KFold(5, shuffle=True, random_state=0)
     res["T2b"] = {}

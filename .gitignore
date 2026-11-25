@@ -1,0 +1,6 @@
+features/
+data/
+gallery_tmp/
+__pycache__/
+*.npy
+.ipynb_checkpoints/

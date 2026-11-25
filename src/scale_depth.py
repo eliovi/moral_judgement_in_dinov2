@@ -49,7 +49,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--features", required=True)
     ap.add_argument("--extra", required=True)
-    ap.add_argument("--stride", type=int, default=2)
+    ap.add_argument("--points", type=int, default=8, help="layers per model, evenly spaced in depth (last layer always included)")
     ap.add_argument("--boot", type=int, default=1000)
     ap.add_argument("--out", default="results_scale_depth")
     a = ap.parse_args()
@@ -70,18 +70,30 @@ def main():
     names = list(targets); Y = np.c_[tuple(targets.values())]
 
     rows, best_preds = [], {}
+    csv = out / "scale_depth_layers.csv"
+    done = pd.read_csv(csv) if csv.exists() else pd.DataFrame(columns=["model"])
     for m in ["S", "B", "L", "G"]:
         F = np.load(f"{a.features}/{m}_smid.npy", mmap_mode="r")
         L = F.shape[0]
-        layers = sorted(set(list(range(0, L, a.stride)) + [L - 1]))
+        layers = sorted(set(int(round(x)) - 1 for x in np.linspace(L / a.points, L, a.points)))
         preds = {}
+        prev = done[done.model == m]
+        if len(prev) and set(prev.layer) >= {l + 1 for l in layers}:  # resume: this size finished in an earlier run
+            print(m, "loaded from", csv, flush=True)
+            rows += prev.to_dict(orient="records")
+            for t in names:
+                d = prev[prev.target == t]; l = int(d.loc[d.rho.idxmax(), "layer"]) - 1
+                if l not in preds:
+                    preds[l] = oof_multi(np.asarray(F[l], dtype=np.float32), Y)
+                best_preds[(m, t)] = preds[l][:, names.index(t)]
+            continue
         for l in layers:
             P = oof_multi(np.asarray(F[l], dtype=np.float32), Y)
             preds[l] = P
             for t, r in zip(names, fast_spearman_cols(Y, P)):
                 rows.append({"model": m, "params": PARAMS[m], "layer": l + 1, "depth": (l + 1) / L, "target": t, "rho": round(float(r), 4)})
             print(m, l + 1, "/", L, {t: r["rho"] for r in rows[-len(names):] for t in [r["target"]] if t in ("valence_ctrl", "morality_ctrl", "mbv_ctrl", "objects_pc1")}, flush=True)
-        df = pd.DataFrame(rows); df.to_csv(out / "scale_depth_layers.csv", index=False)
+        df = pd.DataFrame(rows); df.to_csv(csv, index=False)
         for t in names:
             d = df[(df.model == m) & (df.target == t)]
             best_preds[(m, t)] = preds[int(d.loc[d.rho.idxmax(), "layer"]) - 1][:, names.index(t)]

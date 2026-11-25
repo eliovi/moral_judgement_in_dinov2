@@ -77,7 +77,8 @@ def main():
     ap.add_argument("--layer", type=int, default=36)
     ap.add_argument("--out", default="results_strengthen.json")
     a = ap.parse_args()
-    res = {}
+    import os
+    res = json.load(open(a.out)) if os.path.exists(a.out) else {}
     save = lambda: json.dump(res, open(a.out, "w"), indent=1)
 
     lab = pd.read_csv(f"{a.features}/smid_labels.csv")
@@ -91,64 +92,72 @@ def main():
     ctrl = np.hstack([ll, obj, sup])
     Zc = PCA(64, random_state=0).fit_transform(StandardScaler().fit_transform(ctrl))
 
+    full = None
     # S1 non-linear controls
-    print("S1 non-linear controls", flush=True)
-    makers = {"linear": None,
-              "knn": lambda: KNeighborsRegressor(25, weights="distance"),
-              "boosting": lambda: HistGradientBoostingRegressor(max_iter=300, learning_rate=0.05, random_state=0)}
-    res["S1"] = {}
-    for t, y in targets.items():
-        res["S1"][t] = {}
-        lin = oof(ctrl, y)
-        preds = {"linear": lin, "knn": oof_model(makers["knn"], Zc, y), "boosting": oof_model(makers["boosting"], Zc, y)}
-        # strongest: linear, then boosting and k-NN on what is left, averaged
-        r1 = y - lin
-        preds["linear+nonlinear"] = lin + 0.5 * (oof_model(makers["boosting"], Zc, r1) + oof_model(makers["knn"], Zc, r1))
-        for name, pc in preds.items():
-            r = y - pc
-            res["S1"][t][name] = {"controls_alone": round(float(spearmanr(y, pc)[0]), 4),
-                                  "dinov2_on_residual": rho_ci(r, oof(dino, r), n=300),
-                                  "clip_on_residual": rho_ci(r, oof(C, r), n=300)}
-        print(" ", t, {k: v["dinov2_on_residual"]["rho"] for k, v in res["S1"][t].items()}, flush=True)
-    save()
+    if "S1" not in res:
+        print("S1 non-linear controls", flush=True)
+        makers = {"linear": None,
+                  "knn": lambda: KNeighborsRegressor(25, weights="distance"),
+                  "boosting": lambda: HistGradientBoostingRegressor(max_iter=300, learning_rate=0.05, random_state=0)}
+        res["S1"] = {}
+        for t, y in targets.items():
+            res["S1"][t] = {}
+            lin = oof(ctrl, y)
+            preds = {"linear": lin, "knn": oof_model(makers["knn"], Zc, y), "boosting": oof_model(makers["boosting"], Zc, y)}
+            # strongest: linear, then boosting and k-NN on what is left, averaged
+            r1 = y - lin
+            preds["linear+nonlinear"] = lin + 0.5 * (oof_model(makers["boosting"], Zc, r1) + oof_model(makers["knn"], Zc, r1))
+            for name, pc in preds.items():
+                r = y - pc
+                res["S1"][t][name] = {"controls_alone": round(float(spearmanr(y, pc)[0]), 4),
+                                      "dinov2_on_residual": rho_ci(r, oof(dino, r), n=300),
+                                      "clip_on_residual": rho_ci(r, oof(C, r), n=300)}
+            print(" ", t, {k: v["dinov2_on_residual"]["rho"] for k, v in res["S1"][t].items()}, flush=True)
+        save()
 
     # S2 within object clusters
-    print("S2 within object clusters", flush=True)
-    res["S2"] = {}
-    full = {t: {"dinov2": oof(dino, y), "clip": oof(C, y), "controls": oof(ctrl, y)} for t, y in targets.items()}
-    for K in [50, 150]:
-        cl = KMeans(K, n_init=4, random_state=0).fit_predict(Zc)
-        res["S2"][f"K{K}"] = {t: {m: boot_within(y, p, cl) for m, p in full[t].items()} for t, y in targets.items()}
-        res["S2"][f"K{K}"]["share_of_variance_between_clusters"] = {
-            t: round(float(sum(((y[cl == c].mean() - y.mean()) ** 2) * (cl == c).sum() for c in np.unique(cl)) / ((y - y.mean()) ** 2).sum()), 4)
-            for t, y in targets.items()}
-        print(" ", K, {t: {m: v["rho"] for m, v in d.items()} for t, d in res["S2"][f"K{K}"].items() if t in targets}, flush=True)
-    save()
+    if "S2" not in res:
+        if full is None:
+            full = {t: {"dinov2": oof(dino, y), "clip": oof(C, y), "controls": oof(ctrl, y)} for t, y in targets.items()}
+        print("S2 within object clusters", flush=True)
+        res["S2"] = {}
+        for K in [50, 150]:
+            cl = KMeans(K, n_init=4, random_state=0).fit_predict(Zc)
+            res["S2"][f"K{K}"] = {t: {m: boot_within(y, p, cl) for m, p in full[t].items()} for t, y in targets.items()}
+            res["S2"][f"K{K}"]["share_of_variance_between_clusters"] = {
+                t: round(float(sum(((y[cl == c].mean() - y.mean()) ** 2) * (cl == c).sum() for c in np.unique(cl)) / ((y - y.mean()) ** 2).sum()), 4)
+                for t, y in targets.items()}
+            print(" ", K, {t: {m: v["rho"] for m, v in d.items()} for t, d in res["S2"][f"K{K}"].items() if t in targets}, flush=True)
+        save()
 
     # S3 held-out object clusters
-    print("S3 held-out object groups", flush=True)
-    groups = KMeans(50, n_init=4, random_state=0).fit_predict(PCA(32, random_state=0).fit_transform(StandardScaler().fit_transform(obj)))
-    res["S3"] = {}
-    for t, y in targets.items():
-        res["S3"][t] = {"dinov2_random_folds": rho_ci(y, full[t]["dinov2"], n=300),
-                        "dinov2_heldout_object_groups": rho_ci(y, oof_model(probe, dino, y, groups=groups), n=300),
-                        "objects_heldout_object_groups": rho_ci(y, oof_model(probe, obj, y, groups=groups), n=300),
-                        "clip_heldout_object_groups": rho_ci(y, oof_model(probe, C, y, groups=groups), n=300)}
-        print(" ", t, {k: v["rho"] for k, v in res["S3"][t].items()}, flush=True)
-    save()
+    if "S3" not in res:
+        if full is None:
+            full = {t: {"dinov2": oof(dino, y), "clip": oof(C, y), "controls": oof(ctrl, y)} for t, y in targets.items()}
+        print("S3 held-out object groups", flush=True)
+        groups = KMeans(50, n_init=4, random_state=0).fit_predict(PCA(32, random_state=0).fit_transform(StandardScaler().fit_transform(obj)))
+        res["S3"] = {}
+        for t, y in targets.items():
+            res["S3"][t] = {"dinov2_random_folds": rho_ci(y, full[t]["dinov2"], n=300),
+                            "dinov2_heldout_object_groups": rho_ci(y, oof_model(probe, dino, y, groups=groups), n=300),
+                            "objects_heldout_object_groups": rho_ci(y, oof_model(probe, obj, y, groups=groups), n=300),
+                            "clip_heldout_object_groups": rho_ci(y, oof_model(probe, C, y, groups=groups), n=300)}
+            print(" ", t, {k: v["rho"] for k, v in res["S3"][t].items()}, flush=True)
+        save()
 
     # S4 convergence with CLIP across size and depth
-    print("S4 mutual k-NN alignment", flush=True)
-    res["S4"] = {"reference_supervised_vit_vs_clip": round(mutual_knn(sup, C), 4), "dinov2_vs_clip": [], "dinov2_vs_supervised_vit": []}
-    for m in ["S", "B", "L", "G"]:
-        F = np.load(f"{a.features}/{m}_smid.npy", mmap_mode="r"); L = F.shape[0]
-        for l in sorted(set(list(range(0, L, max(1, L // 8))) + [L - 1])):
-            X = np.asarray(F[l], dtype=np.float32)
-            res["S4"]["dinov2_vs_clip"].append({"model": m, "layer": l + 1, "depth": round((l + 1) / L, 3), "mknn": round(mutual_knn(X, C), 4)})
-            res["S4"]["dinov2_vs_supervised_vit"].append({"model": m, "layer": l + 1, "depth": round((l + 1) / L, 3), "mknn": round(mutual_knn(X, sup), 4)})
-        best = max(r["mknn"] for r in res["S4"]["dinov2_vs_clip"] if r["model"] == m)
-        print(" ", m, "best mutual-kNN with CLIP", best, flush=True)
-    save()
+    if "S4" not in res:
+        print("S4 mutual k-NN alignment", flush=True)
+        res["S4"] = {"reference_supervised_vit_vs_clip": round(mutual_knn(sup, C), 4), "dinov2_vs_clip": [], "dinov2_vs_supervised_vit": []}
+        for m in ["S", "B", "L", "G"]:
+            F = np.load(f"{a.features}/{m}_smid.npy", mmap_mode="r"); L = F.shape[0]
+            for l in sorted(set(list(range(0, L, max(1, L // 8))) + [L - 1])):
+                X = np.asarray(F[l], dtype=np.float32)
+                res["S4"]["dinov2_vs_clip"].append({"model": m, "layer": l + 1, "depth": round((l + 1) / L, 3), "mknn": round(mutual_knn(X, C), 4)})
+                res["S4"]["dinov2_vs_supervised_vit"].append({"model": m, "layer": l + 1, "depth": round((l + 1) / L, 3), "mknn": round(mutual_knn(X, sup), 4)})
+            best = max(r["mknn"] for r in res["S4"]["dinov2_vs_clip"] if r["model"] == m)
+            print(" ", m, "best mutual-kNN with CLIP", best, flush=True)
+            save()
     print("saved", a.out)
 
 

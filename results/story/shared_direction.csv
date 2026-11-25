@@ -18,4 +18,5 @@ G,10,0.25,0.4405,0.3312,0.417,0.3312,0.3501,0.3031
 G,20,0.5,0.5888,0.3572,0.541,0.3884,0.4501,0.3325
 G,30,0.75,0.6986,0.5094,0.6545,0.4459,0.5388,0.3928
 G,36,0.9,0.7522,0.6101,0.7244,0.5632,0.6042,0.4354
-# clip_dir_*: CLIP's rating probe applied to DINOv2 features mapped into CLIP space; map cross-fitted on SMID images without ratings. top10pc_*: probe using only DINOv2's own top 10 principal components. G layer 40 not completed.
+G,40,1.0,0.7477,0.529,0.7316,0.4971,0.6045,0.433
+# clip_dir_*: CLIP's rating probe applied to DINOv2 features mapped into CLIP space; map cross-fitted on SMID images without ratings. top10pc_*: probe using only DINOv2's own top 10 principal components. CLIP's own probes: valence 0.892, morality 0.866, morality beyond valence 0.702. DINOv2-g's own probe: 0.761, 0.735, 0.609.

@@ -1,0 +1,145 @@
+space,direction,end,rank,word
+clip,valence,top,1,peace
+clip,valence,top,2,happiness
+clip,valence,top,3,joy
+clip,valence,top,4,a family
+clip,valence,top,5,kindness
+clip,valence,top,6,fairness
+clip,valence,top,7,a desert
+clip,valence,top,8,money
+clip,valence,top,9,love
+clip,valence,top,10,generosity
+clip,valence,top,11,friendship
+clip,valence,top,12,a crowd
+clip,valence,bottom,1,pain
+clip,valence,bottom,2,anger
+clip,valence,bottom,3,cruelty
+clip,valence,bottom,4,abuse
+clip,valence,bottom,5,murder
+clip,valence,bottom,6,suffering
+clip,valence,bottom,7,war
+clip,valence,bottom,8,horror
+clip,valence,bottom,9,violence
+clip,valence,bottom,10,despair
+clip,valence,bottom,11,fear
+clip,valence,bottom,12,a cigarette
+clip,morality_beyond_valence,top,1,respect
+clip,morality_beyond_valence,top,2,grief
+clip,morality_beyond_valence,top,3,a hospital
+clip,morality_beyond_valence,top,4,care
+clip,morality_beyond_valence,top,5,compassion
+clip,morality_beyond_valence,top,6,a funeral
+clip,morality_beyond_valence,top,7,a nurse
+clip,morality_beyond_valence,top,8,a cemetery
+clip,morality_beyond_valence,top,9,war
+clip,morality_beyond_valence,top,10,a soldier
+clip,morality_beyond_valence,top,11,an elderly person
+clip,morality_beyond_valence,top,12,blood
+clip,morality_beyond_valence,bottom,1,a phone
+clip,morality_beyond_valence,bottom,2,a boat
+clip,morality_beyond_valence,bottom,3,an airplane
+clip,morality_beyond_valence,bottom,4,a car
+clip,morality_beyond_valence,bottom,5,happiness
+clip,morality_beyond_valence,bottom,6,a bird
+clip,morality_beyond_valence,bottom,7,a river
+clip,morality_beyond_valence,bottom,8,a bicycle
+clip,morality_beyond_valence,bottom,9,a desert
+clip,morality_beyond_valence,bottom,10,a chair
+clip,morality_beyond_valence,bottom,11,a blurry image
+clip,morality_beyond_valence,bottom,12,a horse
+dinov2_map_fit_on_smid,valence,top,1,love
+dinov2_map_fit_on_smid,valence,top,2,peace
+dinov2_map_fit_on_smid,valence,top,3,kindness
+dinov2_map_fit_on_smid,valence,top,4,a family
+dinov2_map_fit_on_smid,valence,top,5,happiness
+dinov2_map_fit_on_smid,valence,top,6,joy
+dinov2_map_fit_on_smid,valence,top,7,a mountain
+dinov2_map_fit_on_smid,valence,top,8,a desert
+dinov2_map_fit_on_smid,valence,top,9,fairness
+dinov2_map_fit_on_smid,valence,top,10,the color green
+dinov2_map_fit_on_smid,valence,top,11,friendship
+dinov2_map_fit_on_smid,valence,top,12,a sunny day
+dinov2_map_fit_on_smid,valence,bottom,1,war
+dinov2_map_fit_on_smid,valence,bottom,2,murder
+dinov2_map_fit_on_smid,valence,bottom,3,a battlefield
+dinov2_map_fit_on_smid,valence,bottom,4,pain
+dinov2_map_fit_on_smid,valence,bottom,5,a cigarette
+dinov2_map_fit_on_smid,valence,bottom,6,violence
+dinov2_map_fit_on_smid,valence,bottom,7,suffering
+dinov2_map_fit_on_smid,valence,bottom,8,cruelty
+dinov2_map_fit_on_smid,valence,bottom,9,a slum
+dinov2_map_fit_on_smid,valence,bottom,10,horror
+dinov2_map_fit_on_smid,valence,bottom,11,despair
+dinov2_map_fit_on_smid,valence,bottom,12,terrorism
+dinov2_map_fit_on_smid,morality_beyond_valence,top,1,respect
+dinov2_map_fit_on_smid,morality_beyond_valence,top,2,a funeral
+dinov2_map_fit_on_smid,morality_beyond_valence,top,3,a nurse
+dinov2_map_fit_on_smid,morality_beyond_valence,top,4,compassion
+dinov2_map_fit_on_smid,morality_beyond_valence,top,5,a soldier
+dinov2_map_fit_on_smid,morality_beyond_valence,top,6,a classroom
+dinov2_map_fit_on_smid,morality_beyond_valence,top,7,care
+dinov2_map_fit_on_smid,morality_beyond_valence,top,8,a cemetery
+dinov2_map_fit_on_smid,morality_beyond_valence,top,9,loyalty
+dinov2_map_fit_on_smid,morality_beyond_valence,top,10,a hospital
+dinov2_map_fit_on_smid,morality_beyond_valence,top,11,an elderly person
+dinov2_map_fit_on_smid,morality_beyond_valence,top,12,bright light
+dinov2_map_fit_on_smid,morality_beyond_valence,bottom,1,exploitation
+dinov2_map_fit_on_smid,morality_beyond_valence,bottom,2,money
+dinov2_map_fit_on_smid,morality_beyond_valence,bottom,3,a phone
+dinov2_map_fit_on_smid,morality_beyond_valence,bottom,4,a river
+dinov2_map_fit_on_smid,morality_beyond_valence,bottom,5,smoke
+dinov2_map_fit_on_smid,morality_beyond_valence,bottom,6,fun
+dinov2_map_fit_on_smid,morality_beyond_valence,bottom,7,a factory
+dinov2_map_fit_on_smid,morality_beyond_valence,bottom,8,a mountain
+dinov2_map_fit_on_smid,morality_beyond_valence,bottom,9,a boat
+dinov2_map_fit_on_smid,morality_beyond_valence,bottom,10,a tree
+dinov2_map_fit_on_smid,morality_beyond_valence,bottom,11,a forest
+dinov2_map_fit_on_smid,morality_beyond_valence,bottom,12,a prison
+dinov2_map_fit_on_coco,valence,top,1,fairness
+dinov2_map_fit_on_coco,valence,top,2,a desert
+dinov2_map_fit_on_coco,valence,top,3,the color yellow
+dinov2_map_fit_on_coco,valence,top,4,love
+dinov2_map_fit_on_coco,valence,top,5,peace
+dinov2_map_fit_on_coco,valence,top,6,happiness
+dinov2_map_fit_on_coco,valence,top,7,kindness
+dinov2_map_fit_on_coco,valence,top,8,the color blue
+dinov2_map_fit_on_coco,valence,top,9,bright light
+dinov2_map_fit_on_coco,valence,top,10,joy
+dinov2_map_fit_on_coco,valence,top,11,a couple
+dinov2_map_fit_on_coco,valence,top,12,comfort
+dinov2_map_fit_on_coco,valence,bottom,1,murder
+dinov2_map_fit_on_coco,valence,bottom,2,pollution
+dinov2_map_fit_on_coco,valence,bottom,3,blood
+dinov2_map_fit_on_coco,valence,bottom,4,smoke
+dinov2_map_fit_on_coco,valence,bottom,5,a slum
+dinov2_map_fit_on_coco,valence,bottom,6,vandalism
+dinov2_map_fit_on_coco,valence,bottom,7,a funeral
+dinov2_map_fit_on_coco,valence,bottom,8,a prison
+dinov2_map_fit_on_coco,valence,bottom,9,horror
+dinov2_map_fit_on_coco,valence,bottom,10,poverty
+dinov2_map_fit_on_coco,valence,bottom,11,a city street
+dinov2_map_fit_on_coco,valence,bottom,12,an elderly person
+dinov2_map_fit_on_coco,morality_beyond_valence,top,1,respect
+dinov2_map_fit_on_coco,morality_beyond_valence,top,2,the color yellow
+dinov2_map_fit_on_coco,morality_beyond_valence,top,3,care
+dinov2_map_fit_on_coco,morality_beyond_valence,top,4,disgust
+dinov2_map_fit_on_coco,morality_beyond_valence,top,5,justice
+dinov2_map_fit_on_coco,morality_beyond_valence,top,6,a nurse
+dinov2_map_fit_on_coco,morality_beyond_valence,top,7,a funeral
+dinov2_map_fit_on_coco,morality_beyond_valence,top,8,kindness
+dinov2_map_fit_on_coco,morality_beyond_valence,top,9,war
+dinov2_map_fit_on_coco,morality_beyond_valence,top,10,the color green
+dinov2_map_fit_on_coco,morality_beyond_valence,top,11,a cemetery
+dinov2_map_fit_on_coco,morality_beyond_valence,top,12,blood
+dinov2_map_fit_on_coco,morality_beyond_valence,bottom,1,a parking lot
+dinov2_map_fit_on_coco,morality_beyond_valence,bottom,2,a car
+dinov2_map_fit_on_coco,morality_beyond_valence,bottom,3,rain
+dinov2_map_fit_on_coco,morality_beyond_valence,bottom,4,smoke
+dinov2_map_fit_on_coco,morality_beyond_valence,bottom,5,the color blue
+dinov2_map_fit_on_coco,morality_beyond_valence,bottom,6,a toy
+dinov2_map_fit_on_coco,morality_beyond_valence,bottom,7,exploitation
+dinov2_map_fit_on_coco,morality_beyond_valence,bottom,8,a city street
+dinov2_map_fit_on_coco,morality_beyond_valence,bottom,9,crime
+dinov2_map_fit_on_coco,morality_beyond_valence,bottom,10,laughter
+dinov2_map_fit_on_coco,morality_beyond_valence,bottom,11,an aerial view
+dinov2_map_fit_on_coco,morality_beyond_valence,bottom,12,happiness

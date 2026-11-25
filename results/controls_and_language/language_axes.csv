@@ -1,0 +1,10 @@
+space,axis,valence,morality,arousal,morality_given_valence,valence_given_morality
+clip,affect,0.6689,0.4985,-0.3291,-0.2152,0.5466
+clip,moral,0.5438,0.5538,-0.2808,0.1981,0.1547
+clip,arousal,0.2668,0.1897,-0.4018,-0.0851,0.2085
+dinov2_map_fit_on_smid,affect,0.6182,0.4666,-0.2757,-0.1732,0.4836
+dinov2_map_fit_on_smid,moral,0.4613,0.4922,-0.1918,0.2091,0.0813
+dinov2_map_fit_on_smid,arousal,0.2242,0.132,-0.4162,-0.1268,0.2213
+dinov2_map_fit_on_coco,affect,0.5251,0.3599,-0.2344,-0.2212,0.4567
+dinov2_map_fit_on_coco,moral,0.2899,0.2805,-0.126,0.0617,0.0982
+dinov2_map_fit_on_coco,arousal,0.1815,0.0311,-0.4283,-0.2555,0.3086

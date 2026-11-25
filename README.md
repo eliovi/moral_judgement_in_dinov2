@@ -52,7 +52,25 @@ The morality direction reads as fairness, volunteering and helping others agains
 
 ![Two models, one direction](figures/story_shared.png)
 
-Our reading: good vs bad is part of the structure of the world people photograph (who helps, who harms, what happens to whom), so a model that learns that world well enough ends up representing it. This fits the Platonic Representation Hypothesis ([Huh et al., 2024](https://arxiv.org/abs/2405.07987)) and the Natural Abstraction Hypothesis ([Wentworth, 2021](https://www.lesswrong.com/posts/cy3BhHrGinZCp3LXE/testing-the-natural-abstraction-hypothesis-project-intro)). It is one dataset and a linear probe, so treat it as evidence, not proof.
+## Discussion: a shared, "Platonic" concept?
+
+The Platonic Representation Hypothesis ([Huh et al., 2024](https://arxiv.org/abs/2405.07987)) argues that models trained on different data, with different objectives, converge toward the same picture of the world as they get better at modelling it. The Natural Abstraction Hypothesis ([Wentworth, 2021](https://www.lesswrong.com/posts/cy3BhHrGinZCp3LXE/testing-the-natural-abstraction-hypothesis-project-intro)) makes a related claim about concepts: some summaries of the world are so useful for prediction that any capable learner finds them. Our question is whether good vs bad is one of those.
+
+**What we tested in this direction.** Five experiments speak to it:
+
+1. **The direction transfers between models, both ways.** A linear translation from DINOv2 to CLIP, fit on 5,000 unrated COCO photos, lets CLIP's valence probe read DINOv2's features (ρ 0.66). In the other direction, DINOv2's own morality probe reads CLIP's features translated into DINOv2's space at 0.71, almost what it gets on DINOv2 itself (0.74).
+2. **The transfer grows with depth and size.** With a translation fit on SMID images but never on ratings, CLIP's morality direction predicts morality from DINOv2 at 0.42 a quarter of the way into the network and 0.73 at the end. At the last layer it rises from 0.64 in the smallest model to 0.73 in the largest.
+3. **Overall similarity to CLIP also rises with depth.** Using the mutual-nearest-neighbour measure from Huh et al., DINOv2's neighbourhoods match CLIP's at about 0.02 in the first layer and 0.24 to 0.29 in the last, in the same layers where the moral signal appears. Across sizes this levels off after the base model.
+4. **Good vs bad is one of DINOv2's main axes.** Using only DINOv2's top 10 principal components, found with no labels at all, the probe still predicts valence at 0.48 in the smallest model and 0.61 in the largest. For the largest model that is as much as edge density (0.60) and far more than brightness (0.33).
+5. **Unsupervised clusters carry it.** Grouping DINOv2's embeddings into 10 clusters with no labels already explains 17% of the variance in valence, against 0.3% for random groups.
+
+Taken together: a vision-only model and a caption-trained model end up with nearly the same good/bad direction, the agreement grows as the models get deeper and larger, and the direction is prominent in DINOv2's own unsupervised structure. Notably, the good/bad direction carries over between the models almost without loss, while their neighbourhood structure overall agrees far less. That suggests good vs bad is among the things the two models share most.
+
+**Why would a model trained only on images learn this?** DINOv2 learns by making different crops of the same photo look alike to itself. To do that it has to encode what stays true across the crops: what kind of situation this is. In photos of people, the situation is often who is hurt, who is helping, and what happens next. A compact summary of that is roughly what people call good and bad. On this view, morality in images is not an extra skill but part of the scene structure a good visual model needs anyway, which is why it shows up last in the network and more in larger models.
+
+**What this does not yet show.** Our convergence evidence covers three models (DINOv2, CLIP and a supervised ViT), not the many families a real test of the hypothesis needs. The translations are learned from paired images; a translation learned without pairs, as in [Jha et al. (2025)](https://arxiv.org/abs/2505.12540), would be a stronger test. And what converges may be the structure of situations that human moral judgments track, rather than morality itself. Telling those apart is the next step.
+
+**Why it matters for alignment.** If value-laden concepts emerge on their own in capable models, they may be found and read in models without any labels, which helps interpretability and monitoring. It also means models inherit the moral categories, and the blind spots, present in the photos and judgments they learn from.
 
 ## Caveats
 

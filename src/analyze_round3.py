@@ -59,6 +59,7 @@ def main():
     ap.add_argument("--layer", type=int, default=36)
     ap.add_argument("--null", type=int, default=100)
     ap.add_argument("--out", default="results_round3.json")
+    ap.add_argument("--skip", default="", help="comma-separated sections to skip, e.g. T1,T2a")
     a = ap.parse_args()
 
     lab = pd.read_csv(f"{a.features}/smid_labels.csv")
@@ -71,6 +72,10 @@ def main():
     temb = {t: T[i] for i, t in enumerate(tix["texts"])}
     targets = {"valence": val, "morality": mor, "morality_beyond_valence": mbv}
     res = {"n_images": len(lab), "layer": a.layer + 1, "mbv_definition": "morality minus a cubic-spline fit on valence"}
+    skip = set(x for x in a.skip.split(",") if x)
+
+    def save():  # results are written after every section, so a dropped runtime keeps what finished
+        json.dump(res, open(a.out, "w"), indent=1)
 
     import os
     has_rand = os.path.exists(f"{a.round3}/random_init_G_smid.npy")
@@ -88,51 +93,55 @@ def main():
         rand = rand[best_rand]
 
     # ---- T1 morality beyond valence after controls
-    print("T1 morality beyond valence after controls", flush=True)
-    controls = {"lowlevel": ll, "lowlevel+objects": np.hstack([ll, obj]), "lowlevel+objects+supervised": np.hstack([ll, obj, sup])}
-    res["T1"] = {}
-    for cname, X in controls.items():
-        res["T1"][cname] = {}
-        for t, y in targets.items():
-            pc = oof(X, y); r = y - pc
-            res["T1"][cname][t] = {"controls_alone": round(float(spearmanr(y, pc)[0]), 4),
-                                   "dinov2_on_residual": rho_ci(r, oof(dino, r), n=300),
-                                   "clip_on_residual": rho_ci(r, oof(C, r), n=300)}
-            if rand is not None:
-                res["T1"][cname][t]["random_init_on_residual"] = rho_ci(r, oof(rand, r), n=300)
-        print(" ", cname, {t: v["dinov2_on_residual"]["rho"] for t, v in res["T1"][cname].items()}, flush=True)
+    if "T1" not in skip:
+        print("T1 morality beyond valence after controls", flush=True)
+        controls = {"lowlevel": ll, "lowlevel+objects": np.hstack([ll, obj]), "lowlevel+objects+supervised": np.hstack([ll, obj, sup])}
+        res["T1"] = {}
+        for cname, X in controls.items():
+            res["T1"][cname] = {}
+            for t, y in targets.items():
+                pc = oof(X, y); r = y - pc
+                res["T1"][cname][t] = {"controls_alone": round(float(spearmanr(y, pc)[0]), 4),
+                                       "dinov2_on_residual": rho_ci(r, oof(dino, r), n=300),
+                                       "clip_on_residual": rho_ci(r, oof(C, r), n=300)}
+                if rand is not None:
+                    res["T1"][cname][t]["random_init_on_residual"] = rho_ci(r, oof(rand, r), n=300)
+            print(" ", cname, {t: v["dinov2_on_residual"]["rho"] for t, v in res["T1"][cname].items()}, flush=True)
 
+    save()
     # ---- T2a unsupervised structure of DINOv2
-    print("T2a unsupervised structure", flush=True)
-    Z = StandardScaler().fit_transform(dino)
-    pca = PCA(256, random_state=0).fit(Z); S = pca.transform(Z); ev = pca.explained_variance_ratio_
-    comparators = {"brightness": ll[:, 12], "contrast": ll[:, 13], "edge_density": ll[:, 14], "colorfulness": ll[:, 16], "arousal": aro}
-    allt = {**targets, **comparators}
-    ks = [1, 2, 3, 5, 10, 20, 50, 100, 256]
-    res["T2a"] = {"explained_variance_top10": [round(float(v), 4) for v in ev[:10]], "per_target": {}}
-    for t, y in allt.items():
-        pcr = np.array([spearmanr(S[:, j], y)[0] for j in range(S.shape[1])])
-        order = np.argsort(-np.abs(pcr))
-        curve = {str(k): round(float(spearmanr(y, oof(S[:, :k], y, k=k))[0]), 4) for k in ks}
-        res["T2a"]["per_target"][t] = {
-            "top_pcs": [{"pc": int(j + 1), "rho": round(float(pcr[j]), 4), "var_explained": round(float(ev[j]), 4)} for j in order[:5]],
-            "first_pc_with_abs_rho_over_0.3": next((int(j + 1) for j in range(len(pcr)) if abs(pcr[j]) > 0.3), None),
-            "rho_from_top_k_pcs": curve}
-        print(" ", t, "top PCs", [(d["pc"], d["rho"]) for d in res["T2a"]["per_target"][t]["top_pcs"][:3]], "curve", curve, flush=True)
-    res["T2a"]["kmeans_eta2"] = {}
-    reps = {"dinov2": S[:, :50], "lowlevel": PCA(20, random_state=0).fit_transform(StandardScaler().fit_transform(ll)),
-            "supervised_vit": PCA(50, random_state=0).fit_transform(StandardScaler().fit_transform(sup)),
-            "clip": PCA(50, random_state=0).fit_transform(StandardScaler().fit_transform(C))}
-    if rand is not None:
-        reps["random_init"] = PCA(50, random_state=0).fit_transform(StandardScaler().fit_transform(rand))
-    for rep, F in reps.items():
-        res["T2a"]["kmeans_eta2"][rep] = {}
-        for k in [2, 5, 10, 20, 50]:
-            labk = KMeans(k, n_init=4, random_state=0).fit_predict(F)
-            null = np.mean([eta2(val, RNG.permutation(labk)) for _ in range(30)])
-            res["T2a"]["kmeans_eta2"][rep][str(k)] = {t: round(eta2(y, labk), 4) for t, y in targets.items()} | {"null_valence": round(float(null), 4)}
-        print(" ", rep, {k: v["valence"] for k, v in res["T2a"]["kmeans_eta2"][rep].items()}, flush=True)
+    if "T2a" not in skip:
+        print("T2a unsupervised structure", flush=True)
+        Z = StandardScaler().fit_transform(dino)
+        pca = PCA(256, random_state=0).fit(Z); S = pca.transform(Z); ev = pca.explained_variance_ratio_
+        comparators = {"brightness": ll[:, 12], "contrast": ll[:, 13], "edge_density": ll[:, 14], "colorfulness": ll[:, 16], "arousal": aro}
+        allt = {**targets, **comparators}
+        ks = [1, 2, 3, 5, 10, 20, 50, 100, 256]
+        res["T2a"] = {"explained_variance_top10": [round(float(v), 4) for v in ev[:10]], "per_target": {}}
+        for t, y in allt.items():
+            pcr = np.array([spearmanr(S[:, j], y)[0] for j in range(S.shape[1])])
+            order = np.argsort(-np.abs(pcr))
+            curve = {str(k): round(float(spearmanr(y, oof(S[:, :k], y, k=k))[0]), 4) for k in ks}
+            res["T2a"]["per_target"][t] = {
+                "top_pcs": [{"pc": int(j + 1), "rho": round(float(pcr[j]), 4), "var_explained": round(float(ev[j]), 4)} for j in order[:5]],
+                "first_pc_with_abs_rho_over_0.3": next((int(j + 1) for j in range(len(pcr)) if abs(pcr[j]) > 0.3), None),
+                "rho_from_top_k_pcs": curve}
+            print(" ", t, "top PCs", [(d["pc"], d["rho"]) for d in res["T2a"]["per_target"][t]["top_pcs"][:3]], "curve", curve, flush=True)
+        res["T2a"]["kmeans_eta2"] = {}
+        reps = {"dinov2": S[:, :50], "lowlevel": PCA(20, random_state=0).fit_transform(StandardScaler().fit_transform(ll)),
+                "supervised_vit": PCA(50, random_state=0).fit_transform(StandardScaler().fit_transform(sup)),
+                "clip": PCA(50, random_state=0).fit_transform(StandardScaler().fit_transform(C))}
+        if rand is not None:
+            reps["random_init"] = PCA(50, random_state=0).fit_transform(StandardScaler().fit_transform(rand))
+        for rep, F in reps.items():
+            res["T2a"]["kmeans_eta2"][rep] = {}
+            for k in [2, 5, 10, 20, 50]:
+                labk = KMeans(k, n_init=4, random_state=0).fit_predict(F)
+                null = np.mean([eta2(val, RNG.permutation(labk)) for _ in range(30)])
+                res["T2a"]["kmeans_eta2"][rep][str(k)] = {t: round(eta2(y, labk), 4) for t, y in targets.items()} | {"null_valence": round(float(null), 4)}
+            print(" ", rep, {k: v["valence"] for k, v in res["T2a"]["kmeans_eta2"][rep].items()}, flush=True)
 
+    save()
     # ---- maps fit on unrated photos
     Dc = np.load(f"{a.coco}/coco_dinov2G_L37.npy").astype(np.float32); Cc = np.load(f"{a.coco}/coco_clip.npy").astype(np.float64)
     maps = {"coco": (Dc, Cc)}
@@ -150,6 +159,8 @@ def main():
         res["T5"][name] = {"n_map_images": int(len(Dm)), **evaluate(Chn, C, lab, temb, tix, null=a.null)}
         ax = res["T5"][name]["text_axes"]
         print(" ", name, res["T5"][name]["translation"], {k: (v["valence|morality"], v["morality|valence"]) for k, v in ax.items() if "mean axis" in k}, flush=True)
+
+    save()
 
     # ---- T2b cross-model direction transfer (map fit on unrated photos, never on SMID or ratings)
     mname = "coco+places" if has_places else "coco"

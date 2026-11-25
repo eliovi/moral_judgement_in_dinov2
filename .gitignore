@@ -4,3 +4,6 @@ gallery_tmp/
 __pycache__/
 *.npy
 .ipynb_checkpoints/
+docs/*.aux
+docs/*.log
+docs/*.out

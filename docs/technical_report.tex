@@ -1,0 +1,218 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs,graphicx,microtype,caption,enumitem,xcolor,amsmath}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+\captionsetup{font=small,labelfont=bf}
+\setlist{itemsep=2pt,topsep=4pt}
+\graphicspath{{../figures/}}
+\newcommand{\rhos}{\ensuremath{\rho}}
+
+\title{Does a self-supervised vision model represent good and bad?\\[4pt]
+\large Probing DINOv2 on the Socio-Moral Image Database. Technical report}
+\author{Eli Ovits\\ \small\url{https://github.com/eliovi/valence_in_visual_models}}
+\date{November 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent Language models are known to encode a direction that separates morally good from bad actions \cite{schramowski2022}, but they learn from text that discusses morality explicitly. We ask whether a vision model trained with no labels and no language, DINOv2 \cite{oquab2023}, encodes the same distinction. On 2,940 photographs from the Socio-Moral Image Database (SMID) \cite{crone2018}, a linear probe on frozen DINOv2-g features predicts the mean human morality rating at Spearman $\rho=0.74$ on held-out images (valence: $0.76$). The signal survives removing low-level image statistics ($0.70$) and everything a supervised ImageNet classifier encodes linearly ($0.32$), transfers to object categories the probe never saw, and includes a component of morality that is not explained by pleasantness ($\rho=0.61$; $0.16$ after controls, permutation $p<0.005$). Translated into CLIP's image--text space with a map fit only on unrated COCO photos, DINOv2's morality direction aligns with virtue words over vice words (AUC $0.83$) and, for the part beyond pleasantness, with virtue words over merely pleasant words (AUC $0.84$). The residual moral signal forms in the last third of the network and grows with model size faster than object content does. CLIP's morality direction, read inside DINOv2 through a rating-free translation, predicts morality at $0.73$, close to DINOv2's own probe, and this agreement grows with depth and size. We discuss these results in light of the Platonic Representation Hypothesis \cite{huh2024} and the Natural Abstraction Hypothesis \cite{wentworth2021}, and list the limits of a single-dataset probing study.
+\end{abstract}
+
+\section{Data}
+
+\paragraph{SMID.} The Socio-Moral Image Database \cite{crone2018} contains 2,941 freely available photographs covering morally and affectively positive, negative and neutral content. Its normative ratings come from over 820,000 judgments by 2,716 participants. Each image has mean ratings on 1--5 scales for valence (unpleasant to pleasant), arousal, morality (immoral/blameworthy to moral/praiseworthy) and relevance to the five foundations of Moral Foundations Theory \cite{graham2013} (harm, fairness, ingroup, authority, purity), together with per-image standard deviations, standard errors and rater counts. We use the 2,940 images that have all three main ratings, taken from the Hugging Face copy of the dataset (\texttt{AIML-TUDA/smid}). Across images, valence and morality correlate at $\rho=0.87$.
+
+\paragraph{COCO.} The 5,000 images of COCO \texttt{val2017} \cite{lin2014} are used, without any annotation, only to fit linear translations between DINOv2 and CLIP embedding spaces (Section~\ref{sec:words}). No SMID image or rating enters these maps.
+
+\section{Models and features}
+
+\paragraph{DINOv2.} We use the four public DINOv2 models \cite{oquab2023}: ViT-S/14 (21M parameters, 12 layers), ViT-B/14 (86M, 12), ViT-L/14 (300M, 24) and ViT-g/14 (1.1B, 40). DINOv2 is trained by self-distillation on 142M curated images, without labels or text. The three smaller models are distilled from ViT-g, which matters for the size analysis (Section~\ref{sec:scale}). Images are resized to 256 pixels and centre-cropped to 224 with the model's own processor. At every layer we take the CLS token concatenated with the mean of the patch tokens, giving a $2d$-dimensional vector per image. Unless stated otherwise, analyses use ViT-g layer 37 of 40 (90\% depth), the best layer for valence and morality.
+
+\paragraph{CLIP.} CLIP ViT-L/14 \cite{radford2021} image embeddings, $\ell_2$-normalised. Text embeddings use the template ``a photo of \{\}''.
+
+\paragraph{Control features.}
+\begin{itemize}
+\item \emph{Low-level statistics} (57 per image, computed at $224\times224$): RGB means and standard deviations, HSV means and standard deviations, luminance mean and standard deviation, gradient-magnitude mean and standard deviation (edge density), a colourfulness index, mean luminance in each image quadrant, and normalised histograms of luminance (16 bins), saturation (8) and hue (12).
+\item \emph{Object identity}: the 1,000 ImageNet \cite{deng2009} logits of a supervised ViT-B/16 \cite{dosovitskiy2021} (\texttt{google/\allowbreak vit-base-patch16-224}).
+\item \emph{Supervised features}: the final CLS embedding (768-d) of the same supervised ViT.
+\end{itemize}
+
+\section{Probe and statistics}
+
+\paragraph{Probe.} Every prediction in this report comes from the same pipeline: standardise features, reduce to 256 principal components, then ridge regression with the penalty chosen by internal cross-validation over $\alpha\in\{10^{-1},\dots,10^{5}\}$ (13 values). Predictions are out-of-fold from 5-fold cross-validation (shuffled, seed 0), so every image is scored by a probe that never saw it. Linear probes measure what is linearly decodable from a representation \cite{alain2016}; they do not show that the model uses that information \cite{belinkov2022}, a point we return to in Section~\ref{sec:limits}.
+
+\paragraph{Metrics.} The main metric is Spearman's $\rho$ between out-of-fold predictions and mean human ratings. 95\% confidence intervals come from bootstrapping images (300 to 1,000 resamples). For a classification view, we also report AUROC for separating the top from the bottom third of each rating (300 images per class).
+
+\paragraph{Removing a confound.} To test whether DINOv2 predicts a rating beyond some set of control features $Z$, we first predict the rating $y$ from $Z$ with the same cross-fitted pipeline, form the residual $r=y-\hat y_Z$, and then probe DINOv2 for $r$. A signal that survives cannot come from anything $Z$ predicts linearly.
+
+\paragraph{Permutation test.} For the weakest result (Section~\ref{sec:mbv}) we shuffle the target 200 times and rerun the whole probe, keeping the per-fold standardisation and PCA fixed (they do not see the target) and refitting the ridge.
+
+\section{Test 1: DINOv2 predicts moral and affective ratings}
+
+\textbf{Why.} The first question is whether the information is there at all, and where.
+\textbf{How.} One probe per layer, every second layer, for each DINOv2 size.
+\textbf{Result.} Table~\ref{tab:base}. All three ratings are well predicted. In every size the best layer is in the last 10\% of the network, while ImageNet-style object categories are already separable at near-ceiling accuracy halfway through.
+
+\begin{table}[h]\centering\small
+\begin{tabular}{lcccc}\toprule
+ & ViT-S & ViT-B & ViT-L & ViT-g\\\midrule
+Valence, $\rho$ & 0.695 & 0.730 & 0.748 & 0.762\\
+Morality, $\rho$ & 0.646 & 0.700 & 0.726 & 0.743\\
+Arousal, $\rho$ & 0.661 & 0.697 & 0.719 & 0.724\\
+Valence, AUROC top vs bottom third & 0.895 & 0.913 & 0.933 & 0.938\\
+Morality, AUROC top vs bottom third & 0.888 & 0.912 & 0.930 & 0.936\\\bottomrule
+\end{tabular}
+\caption{Best-layer probe performance on held-out SMID images.}\label{tab:base}
+\end{table}
+
+\section{Test 2: Is it a shortcut?}\label{sec:shortcuts}
+
+\textbf{Why.} A probe can score well by reading something that merely co-occurs with morality: darker or greyer photographs, or particular objects (weapons, children, animals). We test each shortcut and then try harder versions of the object control.
+
+\paragraph{2a. Linear controls.} We remove, in turn, the 57 low-level statistics, then also the ImageNet logits, then also the supervised-ViT features (Table~\ref{tab:controls}). Image statistics explain little. Objects explain most of the raw signal, but DINOv2 keeps $\rho=0.36$ for valence and $0.32$ for morality after all three controls. CLIP, included as a reference, keeps more ($0.65$, $0.60$).
+
+\begin{table}[h]\centering\small
+\begin{tabular}{lccc}\toprule
+Controls removed & Valence & Morality & Morality beyond valence\\\midrule
+none & 0.761 & 0.735 & 0.609\\
+low-level & 0.718 \,(0.70--0.74) & 0.699 \,(0.68--0.72) & 0.579 \,(0.55--0.60)\\
++ ImageNet logits & 0.382 \,(0.35--0.41) & 0.352 \,(0.32--0.38) & 0.191 \,(0.16--0.23)\\
++ supervised-ViT features & 0.356 \,(0.32--0.39) & 0.321 \,(0.29--0.35) & 0.163 \,(0.13--0.20)\\\midrule
+\emph{controls alone, all three} & \emph{0.689} & \emph{0.664} & \emph{0.563}\\\bottomrule
+\end{tabular}
+\caption{DINOv2-g probe (layer 37) on the part of each rating that the controls do not predict (Spearman $\rho$, 95\% CI). ``Morality beyond valence'' is defined in Section~\ref{sec:mbv}.}\label{tab:controls}
+\end{table}
+
+\paragraph{2b. Non-linear controls.} The linear control could miss object information that only a non-linear function extracts. We repeat the residualisation with $k$-nearest-neighbour regression ($k=25$, distance-weighted) and gradient-boosted trees (300 iterations, learning rate 0.05), both on the top 64 principal components of all control features, and with a stacked control that applies the linear control and then removes what $k$-NN and boosting predict from its residual. Alone, the non-linear controls are weaker than the linear one. The stacked control is the strictest test in this report: DINOv2 still predicts valence at $0.23$ (0.20--0.27) and morality at $0.20$ (0.16--0.23), but morality beyond valence drops to $0.03$ ($-0.002$ to $0.07$), not significant. CLIP keeps $0.29$ there. Note that the supervised ViT inside this control itself predicts morality beyond valence at $0.58$, so the control removes more than object identity.
+
+\paragraph{2c. Same objects, different rating.} If DINOv2 only knew object categories, it could not rank images that share object content. We cluster images by their control features ($k$-means with $K=50$ and $K=150$ on the 64 principal components) and compute the correlation between DINOv2's prediction and the rating after removing each cluster's mean from both (ranks first). Clusters explain only 20--37\% of the variance of the ratings. Within clusters ($K=50$) DINOv2 ranks valence at $0.67$ (0.64--0.69) and morality at $0.65$ (0.61--0.67), against $0.55$ and $0.53$ for a probe on the control features; CLIP reaches $0.85$ and $0.82$. Confidence intervals resample whole clusters.
+
+\paragraph{2d. Unseen object groups.} We group images by object content ($k$-means, $K=50$, on 32 principal components of the ImageNet logits) and train the probe on four fifths of the groups and test on the held-out fifth (grouped 5-fold cross-validation). If the probe memorised object categories, it should fail on new ones. DINOv2 barely drops: valence $0.76\to0.74$, morality $0.74\to0.70$, morality beyond valence $0.61\to0.57$. A probe on the ImageNet logits alone reaches $0.59$, $0.56$ and $0.47$ under the same split.
+
+\section{Test 3: Morality beyond pleasantness}\label{sec:mbv}
+
+\textbf{Why.} With valence and morality correlated at 0.87, a probe could read pleasantness and get morality for free. We isolate the moral part.
+
+\paragraph{Definition.} Morality beyond valence (MBV) is the morality rating minus a cubic-spline regression of morality on valence (8 knots, ridge-penalised). It holds 23\% of the variance of the morality rating and is uncorrelated with valence by construction ($\rho=0.03$). A linear fit, or adding arousal to the spline, gives the same results within $0.03$.
+
+\paragraph{Reliability.} SMID's per-image standard errors let us estimate how much of each target is rating noise: reliability $=1-\overline{\mathrm{SE}^2}/\mathrm{Var}(y)$, with the MBV error combining both ratings' errors through the local slope of the spline (assuming independent errors). Reliability is 0.97 for valence, 0.95 for morality, 0.70 for MBV and 0.55 for MBV after the controls of Table~\ref{tab:controls}. The implied ceiling for the controlled MBV target is $\rho\approx0.74$ (0.38 if the two rating errors were fully correlated). DINOv2's $0.16$ is therefore small relative to what is measurable, not limited mainly by noise.
+
+\paragraph{Significance.} After controls DINOv2 predicts MBV at $\rho=0.163$ (0.13--0.20). Over 200 shuffles the null had mean $-0.004$, standard deviation $0.026$ and maximum $0.048$ ($z=6.5$, permutation $p<0.005$; analytic $p\approx6\times10^{-19}$). The correlation rises to $0.19$ on the half of images with the most precise morality ratings and is $0.14$ on the other half, as expected for a real signal attenuated by noise.
+
+\paragraph{Content.} MBV correlates with every moral-foundation relevance rating (harm 0.44, fairness 0.36, ingroup 0.47, authority 0.53, purity 0.38) and not with arousal (0.09), while raw morality correlates with them weakly or not at all. The images where DINOv2 predicts the highest and lowest MBV, and where people agree, are unpleasant scenes of care and duty (rescue workers, firefighters, hospital care, a military funeral) and pleasant but morally neutral scenes (fast food, cash, sports cars, a yacht); Figure~\ref{fig:offdiag}.
+
+\begin{figure}[h]\centering
+\includegraphics[width=0.92\linewidth]{story_offdiagonal.png}
+\caption{Images with the highest and lowest DINOv2-predicted morality beyond valence, restricted to images where the human ratings agree. Numbers are mean human ratings (1--5).}\label{fig:offdiag}
+\end{figure}
+
+\section{Test 4: What the direction means, in words}\label{sec:words}
+
+\textbf{Why.} A probe direction is a vector of numbers. To check that it is about morality rather than some quirk of the ratings, we read it in language, using a translation that never sees the ratings.
+
+\paragraph{Translation.} Embeddings of different models can often be mapped onto each other \cite{jha2025,tasker2026}; we use the simplest form, a supervised linear map on paired images. We pass the 5,000 COCO \texttt{val2017} images through DINOv2-g (layer 37) and CLIP and fit a linear map from DINOv2 to CLIP image embeddings (standardise, 256 principal components, multi-output ridge). Applied unchanged to SMID, the translated embeddings land near the right image (figures from a 512-component version of the same map): mean cosine similarity to the image's true CLIP embedding is 0.77, against 0.59 for random pairs, and the true image is the nearest of all 2,940 SMID images 36\% of the time (top 5: 58\%). A valence probe trained on the translated embeddings reaches $\rho=0.72$.
+
+\paragraph{Reading the direction.} We fix a vocabulary of 150 terms in five groups: 30 virtues (\emph{kindness, fairness, helping others, heroism, \dots}), 30 vices (\emph{cruelty, theft, vandalism, \dots}), 20 positive-emotion terms (\emph{joy, fun, beauty, a party, \dots}), 20 negative-emotion terms (\emph{sadness, pain, decay, \dots}) and 50 everyday things (\emph{a dog, a car, a phone, a hospital, \dots}). For each term we compute, across all 2,940 SMID images, the Spearman correlation between the cosine similarity of the translated image to ``a photo of $\langle$term$\rangle$'' and DINOv2's own out-of-fold probe score. Terms are then ranked, and groups compared with an AUC: the probability that a random term from one group ranks above a random term from another.
+
+\paragraph{Result.} Table~\ref{tab:words} and Figure~\ref{fig:words}. The valence direction prefers positive emotions to virtues, as it should. The morality direction prefers virtues to vices (AUC 0.83) and starts to prefer virtues to pleasant words. The MBV direction prefers virtues to pleasant words strongly (AUC 0.84): its top terms are \emph{volunteering, helping others, heroism, cooperation, respect, gratitude, fairness}, and its bottom terms are \emph{beauty, a bird, a pizza, a cat, a phone, a dog, a horse, a flower}. One top term is unexpected (\emph{slavery}, fifth), plausibly from SMID's historical and memorial photographs.
+
+\begin{table}[h]\centering\small
+\begin{tabular}{lccc}\toprule
+Direction & virtue $>$ vice & virtue $>$ positive emotion & negative emotion $>$ vice\\\midrule
+Valence & 0.81 & 0.36 & 0.25\\
+Morality & 0.83 & 0.57 & 0.19\\
+Morality beyond valence & 0.67 & 0.84 & 0.38\\\bottomrule
+\end{tabular}
+\caption{AUC between word groups for DINOv2's probe directions read through the COCO-fit translation. 0.5 = no preference.}\label{tab:words}
+\end{table}
+
+\begin{figure}[h]\centering
+\includegraphics[width=0.9\linewidth]{story_words.png}
+\caption{Top and bottom terms for DINOv2's morality and morality-beyond-valence directions.}\label{fig:words}
+\end{figure}
+
+\section{Test 5: Depth and scale}\label{sec:scale}
+
+\textbf{Why.} If the moral signal is a high-level abstraction, it should appear late in the network and benefit from capacity, unlike low-level or object information.
+
+\textbf{How.} For each DINOv2 size we probe 8 layers evenly spaced in depth (plus a denser sweep in a first run), for the targets after the controls of Table~\ref{tab:controls} and, as comparison, for object content (the top 5 principal components of the ImageNet logits) and two low-level statistics. For the size effect we compare each target's best layer in ViT-S and ViT-g with a paired bootstrap over images (1,000 resamples), and subtract the average gain on the 5 object components.
+
+\textbf{Result.} Figure~\ref{fig:depth} and Table~\ref{tab:gain}. Low-level statistics peak in the first half of the network and object content rises gradually from the first layer. The controlled MBV signal is at or below zero for the first 55--60\% of depth in every size, turns positive around 60--70\%, and peaks in the last layers. From ViT-S to ViT-g it gains $0.11$, while object content gains about $0.01$.
+
+\begin{figure}[h]\centering
+\includegraphics[width=0.8\linewidth]{story_depth_scale.png}
+\caption{DINOv2's prediction of morality beyond valence, after removing low-level statistics, object logits and supervised features, by relative depth and model size.}\label{fig:depth}
+\end{figure}
+
+\begin{table}[h]\centering\small
+\begin{tabular}{lccc}\toprule
+Target & Gain S$\to$g & 95\% CI & Gain minus object gain (95\% CI)\\\midrule
+Valence after controls & 0.089 & 0.058--0.118 & 0.077 (0.047--0.106)\\
+Morality after controls & 0.129 & 0.091--0.164 & 0.117 (0.080--0.152)\\
+MBV after controls & 0.107 & 0.074--0.140 & 0.095 (0.061--0.128)\\
+Object content (top component) & 0.013 & 0.005--0.022 & --\\\bottomrule
+\end{tabular}
+\caption{Best-layer gain in $\rho$ from ViT-S to ViT-g, paired bootstrap over images.}\label{tab:gain}
+\end{table}
+
+\section{Test 6: Do different models share the direction?}\label{sec:shared}
+
+\textbf{Why.} The Platonic Representation Hypothesis \cite{huh2024} predicts that models trained on different data and objectives converge as they scale. If good vs bad is part of that shared structure, a language-supervised model (CLIP) and a vision-only model (DINOv2) should encode the same direction, increasingly so with scale.
+
+\paragraph{Direction transfer.} For each DINOv2 size and five depths (25, 50, 75, 90, 100\%) we cross-fit, in 5 folds over SMID: (i) a linear map from DINOv2 to CLIP image embeddings, fit on the training images only and \emph{without ratings}; (ii) a rating probe trained on CLIP embeddings of the same training images. The CLIP probe is then applied to the translated DINOv2 embeddings of the held-out images. A high score means CLIP's rating direction is present inside DINOv2. At ViT-g's last layer it predicts morality at $\rho=0.73$, against $0.74$ for DINOv2's own probe and $0.87$ for CLIP's probe on CLIP. The transfer rises with depth in every size (ViT-g: $0.42$ at 25\% depth, $0.54$ at 50\%, $0.65$ at 75\%, $0.72$ at 90\%) and with size at the last layer (Table~\ref{tab:shared}).
+
+\paragraph{Prominence.} To ask whether good vs bad is one of the main axes of DINOv2's representation, rather than a minor direction a probe can find, we probe using only the top 10 principal components of each layer. These carry more valence in larger models (Table~\ref{tab:shared}); for ViT-g, valence from 10 components ($0.61$) is comparable to edge density ($0.60$) and well above brightness ($0.33$).
+
+\paragraph{Global alignment.} Mutual $k$-nearest-neighbour alignment \cite{huh2024} ($k=10$) between DINOv2 and CLIP over SMID rises from about $0.02$ at the first layer to $0.24$--$0.29$ at the last layers, in the same late layers where the moral signal appears. It increases from ViT-S ($0.24$) to ViT-B ($0.28$) and then levels off ($0.29$). For reference, the supervised ViT aligns with CLIP at $0.28$.
+
+\begin{table}[h]\centering\small
+\begin{tabular}{lcccc}\toprule
+ & ViT-S & ViT-B & ViT-L & ViT-g\\\midrule
+CLIP's morality direction in DINOv2 (last layer) & 0.642 & 0.692 & 0.714 & 0.732\\
+CLIP's valence direction in DINOv2 (last layer) & 0.684 & 0.721 & 0.735 & 0.748\\
+CLIP's MBV direction in DINOv2 (last layer) & 0.550 & 0.588 & 0.590 & 0.605\\
+Valence from top 10 principal components (best layer) & 0.478 & 0.531 & 0.540 & 0.610\\
+Mutual 10-NN alignment with CLIP (best layer) & 0.242 & 0.279 & 0.289 & 0.285\\\bottomrule
+\end{tabular}
+\caption{Shared structure between DINOv2 and CLIP by DINOv2 size. Rows 1--4 are Spearman $\rho$ with human ratings.}\label{tab:shared}
+\end{table}
+
+\section{Discussion}
+
+A vision model trained without labels or language organises photographs along a good--bad axis that matches human moral ratings, beyond image statistics and object identity, and partly beyond pleasantness. The axis forms late, grows with capacity, reads as virtue versus vice in language, and coincides with the axis a caption-trained model learns. One reading is that good versus bad is part of the structure of the photographed world: who helps whom, who is harmed, what situations follow. A model that predicts that world well enough then represents it, as the Natural Abstraction Hypothesis \cite{wentworth2021} and the Platonic Representation Hypothesis \cite{huh2024} would suggest. Prior work has found moral directions in language models \cite{schramowski2022,zou2023} and used CLIP to predict SMID ratings \cite{zhu2025}; the contribution here is to show the signal in a model with no access to language, test it against shortcuts, and track how it scales.
+
+\section{Limitations}\label{sec:limits}
+\begin{itemize}
+\item \textbf{One dataset.} All ratings come from SMID. A second rated image set, for example OASIS \cite{kurdi2017}, would test generality.
+\item \textbf{Distilled sizes.} ViT-S, B and L are distilled from ViT-g \cite{oquab2023}, so the size trend partly measures how much of the teacher a student retains. A family of independently trained sizes would be a cleaner test.
+\item \textbf{Strictest control.} Under stacked linear and non-linear removal of the control features, morality beyond valence is no longer significant in DINOv2 (it is in CLIP). Because the supervised ViT in that control itself encodes the target, this control likely removes real signal, but we cannot separate the two.
+\item \textbf{Probing.} Linear decodability is not use \cite{belinkov2022,hewitt2019}. A causal test, such as editing along the direction, is future work.
+\item \textbf{Not yet run.} A randomly initialised DINOv2 baseline and a translation fit on a larger unrated corpus.
+\end{itemize}
+
+\section{Reproducibility}
+All code, result tables and a Colab notebook are at \url{https://github.com/eliovi/valence_in_visual_models}. Feature extraction needs a GPU; every analysis runs on CPU from cached features. Main scripts: \texttt{extract\_features.py} (DINOv2 features), \texttt{extract\_controls\_clip.py} (controls, CLIP), \texttt{run\_probes.py} (Test 1), \texttt{analyze\_controls\_clip.py} and \texttt{strengthen.py} (Test 2), \texttt{morality\_diagnostics.py} (Test 3), \texttt{story\_assets.py} (Tests 4 and 6), \texttt{scale\_depth.py} (Test 5). Software: PyTorch, Hugging Face Transformers, scikit-learn \cite{pedregosa2011}.
+
+\begin{thebibliography}{99}\small
+\bibitem{alain2016} G.~Alain and Y.~Bengio. Understanding intermediate layers using linear classifier probes. arXiv:1610.01644, 2016.
+\bibitem{belinkov2022} Y.~Belinkov. Probing classifiers: Promises, shortcomings, and advances. \emph{Computational Linguistics}, 48(1), 2022.
+\bibitem{crone2018} D.~L.~Crone, S.~Bode, C.~Murawski and S.~M.~Laham. The Socio-Moral Image Database (SMID): A novel stimulus set for the study of social, moral and affective processes. \emph{PLOS ONE}, 13(1):e0190954, 2018. \href{https://doi.org/10.1371/journal.pone.0190954}{doi:10.1371/journal.pone.0190954}
+\bibitem{deng2009} J.~Deng, W.~Dong, R.~Socher, L.-J.~Li, K.~Li and L.~Fei-Fei. ImageNet: A large-scale hierarchical image database. \emph{CVPR}, 2009.
+\bibitem{dosovitskiy2021} A.~Dosovitskiy et al. An image is worth 16x16 words: Transformers for image recognition at scale. \emph{ICLR}, 2021. arXiv:2010.11929.
+\bibitem{graham2013} J.~Graham, J.~Haidt, S.~Koleva, M.~Motyl, R.~Iyer, S.~P.~Wojcik and P.~H.~Ditto. Moral Foundations Theory: The pragmatic validity of moral pluralism. \emph{Advances in Experimental Social Psychology}, 47, 2013.
+\bibitem{hewitt2019} J.~Hewitt and P.~Liang. Designing and interpreting probes with control tasks. \emph{EMNLP}, 2019. arXiv:1909.03368.
+\bibitem{huh2024} M.~Huh, B.~Cheung, T.~Wang and P.~Isola. The Platonic Representation Hypothesis. \emph{ICML}, 2024. arXiv:2405.07987.
+\bibitem{jha2025} R.~Jha, C.~Zhang, V.~Shmatikov and J.~X.~Morris. Harnessing the universal geometry of embeddings. arXiv:2505.12540, 2025.
+\bibitem{kurdi2017} B.~Kurdi, S.~Lozano and M.~R.~Banaji. Introducing the Open Affective Standardized Image Set (OASIS). \emph{Behavior Research Methods}, 49, 2017.
+\bibitem{lin2014} T.-Y.~Lin et al. Microsoft COCO: Common objects in context. \emph{ECCV}, 2014. arXiv:1405.0312.
+\bibitem{oquab2023} M.~Oquab, T.~Darcet, T.~Moutakanni et al. DINOv2: Learning robust visual features without supervision. \emph{TMLR}, 2024. arXiv:2304.07193.
+\bibitem{pedregosa2011} F.~Pedregosa et al. Scikit-learn: Machine learning in Python. \emph{JMLR}, 12, 2011.
+\bibitem{radford2021} A.~Radford et al. Learning transferable visual models from natural language supervision. \emph{ICML}, 2021. arXiv:2103.00020.
+\bibitem{schramowski2022} P.~Schramowski, C.~Turan, N.~Andersen, C.~A.~Rothkopf and K.~Kersting. Large pre-trained language models contain human-like biases of what is right and wrong to do. \emph{Nature Machine Intelligence}, 4(3), 2022. \href{https://doi.org/10.1038/s42256-022-00458-8}{doi:10.1038/s42256-022-00458-8}
+\bibitem{tasker2026} Tasker, Betser, Gofer, Levi and Gilboa. The Universal Normal Embedding. arXiv:2603.21786, 2026.
+\bibitem{wentworth2021} J.~Wentworth. Testing the Natural Abstraction Hypothesis: Project intro. \emph{LessWrong / AI Alignment Forum}, 2021. \url{https://www.lesswrong.com/posts/cy3BhHrGinZCp3LXE}
+\bibitem{zhu2025} W.~Zhu, A.~Ramezani and Y.~Xu. Visual moral inference and communication. \emph{CogSci}, 2025. arXiv:2504.11473.
+\bibitem{zou2023} A.~Zou et al. Representation engineering: A top-down approach to AI transparency. arXiv:2310.01405, 2023.
+\end{thebibliography}
+\end{document}

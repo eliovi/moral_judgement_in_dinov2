@@ -9,7 +9,7 @@
 
 \title{Does a self-supervised vision model represent good and bad?\\[4pt]
 \large Probing DINOv2 on the Socio-Moral Image Database. Technical report}
-\author{Eli Ovits\\ \small\url{https://github.com/eliovi/valence_in_visual_models}}
+\author{Eli Ovits\\ \small\url{https://github.com/eliovi/moral_judgement_in_dinov2}}
 \date{November 2026}
 
 \begin{document}
@@ -55,7 +55,7 @@ The closest prior work is Zhu, Ramezani and Xu \cite{zhu2025}, who predicted SMI
 
 \textbf{Why.} The first question is whether the information is there at all, and where.
 \textbf{How.} One probe per layer, every second layer, for each DINOv2 size.
-\textbf{Result.} Table~\ref{tab:base}. All three ratings are well predicted. In every size the best layer is in the last 10\% of the network, while ImageNet-style object categories are already separable at near-ceiling accuracy halfway through.
+\textbf{Result.} Table~\ref{tab:base}. All three ratings are well predicted. In every size the best layer is in the last 10\% of the network (Section~\ref{sec:scale} compares this with object content).
 
 \begin{table}[h]\centering\small
 \begin{tabular}{lcccc}\toprule
@@ -106,7 +106,7 @@ low-level & 0.718 \,(0.70--0.74) & 0.699 \,(0.68--0.72) & 0.579 \,(0.55--0.60)\\
 \paragraph{Content.} MBV correlates with every moral-foundation relevance rating (harm 0.44, fairness 0.36, ingroup 0.47, authority 0.53, purity 0.38) and not with arousal (0.09), while raw morality correlates with them weakly or not at all. The images where DINOv2 predicts the highest and lowest MBV, and where people agree, are unpleasant scenes of care and duty (rescue workers, firefighters, hospital care, a military funeral) and pleasant but morally neutral scenes (fast food, cash, sports cars, a yacht); Figure~\ref{fig:offdiag}.
 
 \begin{figure}[h]\centering
-\includegraphics[width=0.92\linewidth]{story_offdiagonal.png}
+\includegraphics[width=0.92\linewidth]{fig3_beyond_pleasant.png}
 \caption{Images with the highest and lowest DINOv2-predicted morality beyond valence, restricted to images where the human ratings agree. Numbers are mean human ratings (1--5).}\label{fig:offdiag}
 \end{figure}
 
@@ -131,7 +131,7 @@ Morality beyond valence & 0.67 & 0.84 & 0.38\\\bottomrule
 \end{table}
 
 \begin{figure}[h]\centering
-\includegraphics[width=0.9\linewidth]{story_words.png}
+\includegraphics[width=0.9\linewidth]{fig4_words.png}
 \caption{Top and bottom terms for DINOv2's morality and morality-beyond-valence directions.}\label{fig:words}
 \end{figure}
 
@@ -139,12 +139,12 @@ Morality beyond valence & 0.67 & 0.84 & 0.38\\\bottomrule
 
 \textbf{Why.} If the moral signal is a high-level abstraction, it should appear late in the network and benefit from capacity, unlike low-level or object information.
 
-\textbf{How.} For each DINOv2 size we probe 8 layers evenly spaced in depth (plus a denser sweep in a first run), for the targets after the controls of Table~\ref{tab:controls} and, as comparison, for object content (the top 5 principal components of the ImageNet logits) and two low-level statistics. For the size effect we compare each target's best layer in ViT-S and ViT-g with a paired bootstrap over images (1,000 resamples), and subtract the average gain on the 5 object components.
+\textbf{How.} For each DINOv2 size we probe 8 layers evenly spaced in depth, for the targets after the controls of Table~\ref{tab:controls} and, as comparison, for object content (the top 5 principal components of the ImageNet logits) and two low-level statistics. For the size effect we compare each target's best layer in ViT-S and ViT-g with a paired bootstrap over images (1,000 resamples), and subtract the average gain on the 5 object components.
 
 \textbf{Result.} Figure~\ref{fig:depth} and Table~\ref{tab:gain}. Low-level statistics peak in the first half of the network and object content rises gradually from the first layer. The controlled MBV signal is at or below zero for the first 55--60\% of depth in every size, turns positive around 60--70\%, and peaks in the last layers. From ViT-S to ViT-g it gains $0.11$, while object content gains about $0.01$.
 
 \begin{figure}[h]\centering
-\includegraphics[width=0.8\linewidth]{story_depth_scale.png}
+\includegraphics[width=0.8\linewidth]{fig5_depth_scale.png}
 \caption{DINOv2's prediction of morality beyond valence, after removing low-level statistics, object logits and supervised features, by relative depth and model size.}\label{fig:depth}
 \end{figure}
 
@@ -165,7 +165,7 @@ Object content (top component) & 0.013 & 0.005--0.022 & --\\\bottomrule
 
 \paragraph{Direction transfer.} For each DINOv2 size and five depths (25, 50, 75, 90, 100\%) we cross-fit, in 5 folds over SMID: (i) a linear map from DINOv2 to CLIP image embeddings, fit on the training images only and \emph{without ratings}; (ii) a rating probe trained on CLIP embeddings of the same training images. The CLIP probe is then applied to the translated DINOv2 embeddings of the held-out images. A high score means CLIP's rating direction is present inside DINOv2. At ViT-g's last layer it predicts morality at $\rho=0.73$, against $0.74$ for DINOv2's own probe and $0.87$ for CLIP's probe on CLIP. The transfer rises with depth in every size (ViT-g: $0.42$ at 25\% depth, $0.54$ at 50\%, $0.65$ at 75\%, $0.72$ at 90\%) and with size at the last layer (Table~\ref{tab:shared}).
 
-\paragraph{Prominence.} To ask whether good vs bad is one of the main axes of DINOv2's representation, rather than a minor direction a probe can find, we probe using only the top 10 principal components of each layer. These carry more valence in larger models (Table~\ref{tab:shared}); for ViT-g, valence from 10 components ($0.61$) is comparable to edge density ($0.60$) and well above brightness ($0.33$).
+\paragraph{Prominence.} To ask whether good vs bad is one of the main axes of DINOv2's representation, rather than a minor direction a probe can find, we probe using only the top 10 principal components of each layer. From these 10 components alone, morality is predicted at $0.43$ in ViT-S and $0.56$ in ViT-g, though not monotonically in between (Table~\ref{tab:shared}). For comparison, the same 10 components of ViT-g predict edge density at $0.60$ and brightness at $0.33$.
 
 \paragraph{Global alignment.} Mutual $k$-nearest-neighbour alignment \cite{huh2024} ($k=10$) between DINOv2 and CLIP over SMID rises from about $0.02$ at the first layer to $0.24$--$0.29$ at the last layers, in the same late layers where the moral signal appears. It increases from ViT-S ($0.24$) to ViT-B ($0.28$) and then levels off ($0.29$). For reference, the supervised ViT aligns with CLIP at $0.28$.
 
@@ -175,7 +175,7 @@ Object content (top component) & 0.013 & 0.005--0.022 & --\\\bottomrule
 CLIP's morality direction in DINOv2 (last layer) & 0.642 & 0.692 & 0.714 & 0.732\\
 CLIP's valence direction in DINOv2 (last layer) & 0.684 & 0.721 & 0.735 & 0.748\\
 CLIP's MBV direction in DINOv2 (last layer) & 0.550 & 0.588 & 0.590 & 0.605\\
-Valence from top 10 principal components (best layer) & 0.478 & 0.531 & 0.540 & 0.610\\
+Morality from top 10 principal components (best layer) & 0.435 & 0.514 & 0.477 & 0.563\\
 Mutual 10-NN alignment with CLIP (best layer) & 0.242 & 0.279 & 0.289 & 0.285\\\bottomrule
 \end{tabular}
 \caption{Shared structure between DINOv2 and CLIP by DINOv2 size. Rows 1--4 are Spearman $\rho$ with human ratings.}\label{tab:shared}
@@ -185,19 +185,17 @@ Mutual 10-NN alignment with CLIP (best layer) & 0.242 & 0.279 & 0.289 & 0.285\\\
 
 \paragraph{Summary.} A vision model trained without labels or language organises photographs along a good--bad axis that matches human moral ratings, beyond image statistics and object identity, and partly beyond pleasantness. The axis forms late, grows with capacity, reads as virtue versus vice in language, and coincides with the axis a caption-trained model learns. Prior work found moral directions in language models \cite{schramowski2022,zou2023} and predicted SMID ratings from CLIP \cite{zhu2025}; the contribution here is to show the signal in a model with no access to language, test it against shortcuts, and track how it scales and transfers.
 
-\paragraph{A shared, ``Platonic'' concept?} The Platonic Representation Hypothesis \cite{huh2024} holds that representations of models trained on different data and objectives converge as the models improve, toward a shared statistical model of the world. The Natural Abstraction Hypothesis \cite{wentworth2021} makes the related claim that some low-dimensional summaries of the world are useful enough that a wide variety of learners acquire them. Five of our measurements bear on whether good versus bad belongs to this shared structure:
+\paragraph{A shared, ``Platonic'' concept?} The Platonic Representation Hypothesis \cite{huh2024} holds that representations of models trained on different data and objectives converge as the models improve, toward a shared statistical model of the world. The Natural Abstraction Hypothesis \cite{wentworth2021} makes the related claim that some low-dimensional summaries of the world are useful enough that a wide variety of learners acquire them. If moral good versus bad is such a concept, three predictions follow, and Test~6 checks each against the human morality ratings:
 \begin{enumerate}
-\item \emph{Two-way transfer through a rating-free map.} With a linear DINOv2$\to$CLIP map fit on unrated COCO photos, CLIP's valence probe reads translated DINOv2 features at $\rho=0.66$ (DINOv2's own probe: $0.76$). In the reverse direction, with a CLIP$\to$DINOv2 map fit the same way, DINOv2's morality probe reads translated CLIP features at $0.71$ (on DINOv2 itself: $0.74$; morality beyond valence $0.57$ versus $0.61$).
-\item \emph{Transfer grows with depth and size} (Section~\ref{sec:shared}, Table~\ref{tab:shared}): from $0.42$ at 25\% depth to $0.73$ at the last layer of ViT-g, and from $0.64$ (ViT-S) to $0.73$ (ViT-g) at the last layer.
-\item \emph{Global alignment rises in the same layers.} Mutual 10-NN alignment with CLIP climbs from $0.02$ to $0.24$--$0.29$ over depth, but saturates across size after ViT-B.
-\item \emph{Prominence in DINOv2's own unsupervised structure.} Valence decodable from only the top 10 principal components rises from $0.48$ (ViT-S) to $0.61$ (ViT-g), on par with edge density and well above brightness.
-\item \emph{Unsupervised clusters.} $k$-means with $K=10$ on DINOv2-g embeddings explains 17\% of the variance of valence ($\eta^2$), against 0.3\% for permuted cluster labels and 4\% for clusters of the low-level statistics.
+\item \emph{Different models agree on it.} Through linear maps fit on unrated COCO photos, DINOv2's morality probe reads CLIP features translated into DINOv2's space at $\rho=0.71$, against $0.74$ on DINOv2 itself (morality beyond valence: $0.57$ versus $0.61$). In the other direction CLIP's probe reads translated DINOv2 features at $0.62$, against $0.87$ on CLIP, consistent with CLIP carrying more moral information than DINOv2.
+\item \emph{Agreement grows with capability.} CLIP's morality direction read inside DINOv2 rises from $0.42$ at 25\% depth to $0.73$ at the last layer of ViT-g, and at the last layer from $0.64$ (ViT-S) to $0.73$ (ViT-g).
+\item \emph{It is among DINOv2's main axes.} The top 10 principal components of DINOv2, found without labels, predict morality at $0.43$ (ViT-S) to $0.56$ (ViT-g).
 \end{enumerate}
-The rating directions transfer between the two models with little loss, while their neighbourhood structure as a whole agrees only moderately (mutual 10-NN $\approx0.29$). The two measures are not on the same scale, so this comparison is suggestive only, but it is consistent with good versus bad being among the more strongly shared components of the two representations.
+All three hold in our data. The overall neighbourhood agreement between the two models (mutual 10-NN) also rises over depth, from $0.02$ to $0.24$--$0.29$, in the same late layers where the moral signal appears.
 
 \paragraph{Why would a self-supervised vision model learn it?} DINOv2's objective makes the representations of different views of an image agree, so the representation must keep what is invariant across crops: the kind of scene and what is happening in it. For photographs of people, much of that is who is harmed, who is helping and what is likely to follow, which overlaps heavily with what raters judge as good or bad. On this account, moral content is not a separate capacity but part of the situation-level structure a strong visual model needs anyway. That would explain why it appears in the last layers, after objects, and why it grows with capacity while object content saturates.
 
-\paragraph{What is not yet shown.} Convergence evidence here covers three models (DINOv2, CLIP and a supervised ViT); a test of the hypothesis needs many model families and modalities, including language-only models. Our translations are learned from paired images; an unpaired translation in the style of \cite{jha2025,tasker2026} would test convergence more strictly. Finally, what converges may be the structure of situations that human moral judgments track, rather than morality as such; separating the two needs stimuli where the same visual situation carries different moral meaning.
+\paragraph{What is not yet shown.} Convergence evidence here covers two models; a test of the hypothesis needs many model families and modalities, including language-only models. Our translations are learned from paired images; an unpaired translation in the style of \cite{jha2025,tasker2026} would test convergence more strictly. Finally, what converges may be the structure of situations that human moral judgments track, rather than morality as such; separating the two needs stimuli where the same visual situation carries different moral meaning.
 
 \paragraph{Relevance to alignment.} If value-laden concepts arise without supervision in capable models, they can be located and read out without labels, which is useful for interpretability and monitoring. The same mechanism means models inherit the moral categories, and the blind spots, of the images and judgments they learn from.
 
@@ -211,7 +209,7 @@ The rating directions transfer between the two models with little loss, while th
 \end{itemize}
 
 \section{Reproducibility}
-All code, result tables and a Colab notebook are at \url{https://github.com/eliovi/valence_in_visual_models}. Feature extraction needs a GPU; every analysis runs on CPU from cached features. Main scripts: \texttt{extract\_features.py} (DINOv2 features), \texttt{extract\_controls\_clip.py} (controls, CLIP), \texttt{run\_probes.py} (Test 1), \texttt{analyze\_controls\_clip.py} and \texttt{strengthen.py} (Test 2), \texttt{morality\_diagnostics.py} (Test 3), \texttt{story\_assets.py} (Tests 4 and 6), \texttt{scale\_depth.py} (Test 5). Software: PyTorch, Hugging Face Transformers, scikit-learn \cite{pedregosa2011}.
+All code, result files and a Colab notebook are at \url{https://github.com/eliovi/moral_judgement_in_dinov2}. Feature extraction (\texttt{src/extract.py}) needs a GPU; every test runs on CPU from cached features, one script per test:\\ \texttt{e1\_probe\_layers.py} (Test 1), \texttt{e2\_shortcuts.py} (Test 2), \texttt{e3\_beyond\_valence.py} (Test 3),\linebreak \texttt{e4\_words.py} (Test 4), \texttt{e5\_depth\_scale.py} (Test 5) and \texttt{e6\_shared.py} (Test 6). Shared code (the probe, statistics, cache layout) is in \texttt{src/common.py}. Software: PyTorch, Hugging Face Transformers, scikit-learn \cite{pedregosa2011}.
 
 \begin{thebibliography}{99}\small
 \bibitem{alain2016} G.~Alain and Y.~Bengio. Understanding intermediate layers using linear classifier probes. arXiv:1610.01644, 2016.

@@ -1,4 +1,0 @@
-controls_removed,valence_rho,morality_rho,morality_beyond_valence_rho
-lowlevel,0.8622,0.8440,0.6758
-lowlevel+objects,0.6512,0.6102,0.3885
-lowlevel+objects+supervised,0.6487,0.6025,0.3748

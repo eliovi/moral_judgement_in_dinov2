@@ -1,0 +1,210 @@
+{
+ "_source": "Numbers from the original Colab runs (Nov 2026), reorganised into the layout the current scripts write. Rerunning the script regenerates this file. The per-layer table holds the four targets used in the figure.",
+ "best_rho": {
+  "valence": {
+   "S": 0.695,
+   "B": 0.73,
+   "L": 0.746,
+   "G": 0.756
+  },
+  "morality": {
+   "S": 0.646,
+   "B": 0.7,
+   "L": 0.723,
+   "G": 0.74
+  },
+  "arousal": {
+   "S": 0.661,
+   "B": 0.698,
+   "L": 0.701,
+   "G": 0.718
+  },
+  "mbv": {
+   "S": 0.552,
+   "B": 0.595,
+   "L": 0.596,
+   "G": 0.607
+  },
+  "valence_ctrl": {
+   "S": 0.262,
+   "B": 0.336,
+   "L": 0.333,
+   "G": 0.351
+  },
+  "morality_ctrl": {
+   "S": 0.204,
+   "B": 0.298,
+   "L": 0.305,
+   "G": 0.333
+  },
+  "mbv_ctrl": {
+   "S": 0.071,
+   "B": 0.151,
+   "L": 0.152,
+   "G": 0.177
+  },
+  "objects_pc1": {
+   "S": 0.818,
+   "B": 0.817,
+   "L": 0.824,
+   "G": 0.83
+  },
+  "objects_pc2": {
+   "S": 0.894,
+   "B": 0.893,
+   "L": 0.895,
+   "G": 0.896
+  },
+  "objects_pc3": {
+   "S": 0.747,
+   "B": 0.761,
+   "L": 0.763,
+   "G": 0.774
+  },
+  "objects_pc4": {
+   "S": 0.789,
+   "B": 0.794,
+   "L": 0.794,
+   "G": 0.798
+  },
+  "objects_pc5": {
+   "S": 0.757,
+   "B": 0.762,
+   "L": 0.761,
+   "G": 0.764
+  },
+  "brightness": {
+   "S": 0.937,
+   "B": 0.948,
+   "L": 0.95,
+   "G": 0.96
+  },
+  "edge_density": {
+   "S": 0.965,
+   "B": 0.968,
+   "L": 0.969,
+   "G": 0.97
+  }
+ },
+ "gain_smallest_to_largest": {
+  "valence": {
+   "gain": 0.0609,
+   "ci": [
+    0.0458,
+    0.0762
+   ],
+   "minus_object_gain": 0.0491,
+   "minus_object_gain_ci": [
+    0.0328,
+    0.064
+   ]
+  },
+  "morality": {
+   "gain": 0.0945,
+   "ci": [
+    0.0777,
+    0.1118
+   ],
+   "minus_object_gain": 0.0827,
+   "minus_object_gain_ci": [
+    0.0649,
+    0.0996
+   ]
+  },
+  "arousal": {
+   "gain": 0.0575,
+   "ci": [
+    0.0435,
+    0.0729
+   ],
+   "minus_object_gain": 0.0457,
+   "minus_object_gain_ci": [
+    0.0301,
+    0.0623
+   ]
+  },
+  "valence_ctrl": {
+   "gain": 0.089,
+   "ci": [
+    0.058,
+    0.1175
+   ],
+   "minus_object_gain": 0.0771,
+   "minus_object_gain_ci": [
+    0.0467,
+    0.106
+   ]
+  },
+  "morality_ctrl": {
+   "gain": 0.1285,
+   "ci": [
+    0.0913,
+    0.1639
+   ],
+   "minus_object_gain": 0.1166,
+   "minus_object_gain_ci": [
+    0.0802,
+    0.1519
+   ]
+  },
+  "mbv": {
+   "gain": 0.0546,
+   "ci": [
+    0.0393,
+    0.0708
+   ],
+   "minus_object_gain": 0.0427,
+   "minus_object_gain_ci": [
+    0.0263,
+    0.0596
+   ]
+  },
+  "mbv_ctrl": {
+   "gain": 0.1065,
+   "ci": [
+    0.0735,
+    0.1395
+   ],
+   "minus_object_gain": 0.0946,
+   "minus_object_gain_ci": [
+    0.0611,
+    0.1279
+   ]
+  },
+  "objects_pc1": {
+   "gain": 0.0128,
+   "ci": [
+    0.005,
+    0.0215
+   ]
+  },
+  "objects_pc2": {
+   "gain": 0.0023,
+   "ci": [
+    -0.0022,
+    0.0069
+   ]
+  },
+  "objects_pc3": {
+   "gain": 0.0275,
+   "ci": [
+    0.0153,
+    0.0398
+   ]
+  },
+  "objects_pc4": {
+   "gain": 0.0095,
+   "ci": [
+    -0.0001,
+    0.019
+   ]
+  },
+  "objects_pc5": {
+   "gain": 0.007,
+   "ci": [
+    -0.0039,
+    0.0186
+   ]
+  }
+ }
+}

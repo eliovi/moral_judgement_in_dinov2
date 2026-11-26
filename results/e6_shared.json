@@ -1,0 +1,584 @@
+{
+ "_source": "Numbers from the original Colab runs (Nov 2026), reorganised into the layout the current scripts write. Rerunning the script regenerates this file.",
+ "clip_own_probe": {
+  "valence": 0.8918,
+  "morality": 0.8659,
+  "morality_beyond_valence": 0.7023
+ },
+ "transfer_by_size_depth": [
+  {
+   "model": "S",
+   "layer": 3,
+   "depth": 0.25,
+   "clip_direction_valence": 0.369,
+   "clip_direction_morality": 0.3558,
+   "clip_direction_morality_beyond_valence": 0.329,
+   "top10pc_valence": 0.3059,
+   "top10pc_morality": 0.2873,
+   "top10pc_morality_beyond_valence": 0.2549
+  },
+  {
+   "model": "S",
+   "layer": 6,
+   "depth": 0.5,
+   "clip_direction_valence": 0.5112,
+   "clip_direction_morality": 0.485,
+   "clip_direction_morality_beyond_valence": 0.3892,
+   "top10pc_valence": 0.3869,
+   "top10pc_morality": 0.4103,
+   "top10pc_morality_beyond_valence": 0.3
+  },
+  {
+   "model": "S",
+   "layer": 9,
+   "depth": 0.75,
+   "clip_direction_valence": 0.6105,
+   "clip_direction_morality": 0.5743,
+   "clip_direction_morality_beyond_valence": 0.4617,
+   "top10pc_valence": 0.4318,
+   "top10pc_morality": 0.4257,
+   "top10pc_morality_beyond_valence": 0.3459
+  },
+  {
+   "model": "S",
+   "layer": 11,
+   "depth": 0.917,
+   "clip_direction_valence": 0.6554,
+   "clip_direction_morality": 0.619,
+   "clip_direction_morality_beyond_valence": 0.5191,
+   "top10pc_valence": 0.4701,
+   "top10pc_morality": 0.4347,
+   "top10pc_morality_beyond_valence": 0.3602
+  },
+  {
+   "model": "S",
+   "layer": 12,
+   "depth": 1.0,
+   "clip_direction_valence": 0.684,
+   "clip_direction_morality": 0.6417,
+   "clip_direction_morality_beyond_valence": 0.5503,
+   "top10pc_valence": 0.4779,
+   "top10pc_morality": 0.4221,
+   "top10pc_morality_beyond_valence": 0.4001
+  },
+  {
+   "model": "B",
+   "layer": 3,
+   "depth": 0.25,
+   "clip_direction_valence": 0.3958,
+   "clip_direction_morality": 0.3814,
+   "clip_direction_morality_beyond_valence": 0.3429,
+   "top10pc_valence": 0.3129,
+   "top10pc_morality": 0.2955,
+   "top10pc_morality_beyond_valence": 0.2598
+  },
+  {
+   "model": "B",
+   "layer": 6,
+   "depth": 0.5,
+   "clip_direction_valence": 0.5416,
+   "clip_direction_morality": 0.5039,
+   "clip_direction_morality_beyond_valence": 0.4242,
+   "top10pc_valence": 0.3496,
+   "top10pc_morality": 0.3959,
+   "top10pc_morality_beyond_valence": 0.3299
+  },
+  {
+   "model": "B",
+   "layer": 9,
+   "depth": 0.75,
+   "clip_direction_valence": 0.6359,
+   "clip_direction_morality": 0.5999,
+   "clip_direction_morality_beyond_valence": 0.5029,
+   "top10pc_valence": 0.4287,
+   "top10pc_morality": 0.4241,
+   "top10pc_morality_beyond_valence": 0.3598
+  },
+  {
+   "model": "B",
+   "layer": 11,
+   "depth": 0.917,
+   "clip_direction_valence": 0.7067,
+   "clip_direction_morality": 0.6774,
+   "clip_direction_morality_beyond_valence": 0.5588,
+   "top10pc_valence": 0.4405,
+   "top10pc_morality": 0.4215,
+   "top10pc_morality_beyond_valence": 0.3857
+  },
+  {
+   "model": "B",
+   "layer": 12,
+   "depth": 1.0,
+   "clip_direction_valence": 0.7207,
+   "clip_direction_morality": 0.6915,
+   "clip_direction_morality_beyond_valence": 0.5875,
+   "top10pc_valence": 0.5307,
+   "top10pc_morality": 0.5137,
+   "top10pc_morality_beyond_valence": 0.4434
+  },
+  {
+   "model": "L",
+   "layer": 6,
+   "depth": 0.25,
+   "clip_direction_valence": 0.3712,
+   "clip_direction_morality": 0.3548,
+   "clip_direction_morality_beyond_valence": 0.3243,
+   "top10pc_valence": 0.3087,
+   "top10pc_morality": 0.3016,
+   "top10pc_morality_beyond_valence": 0.2661
+  },
+  {
+   "model": "L",
+   "layer": 12,
+   "depth": 0.5,
+   "clip_direction_valence": 0.5168,
+   "clip_direction_morality": 0.4836,
+   "clip_direction_morality_beyond_valence": 0.398,
+   "top10pc_valence": 0.3429,
+   "top10pc_morality": 0.3935,
+   "top10pc_morality_beyond_valence": 0.3127
+  },
+  {
+   "model": "L",
+   "layer": 18,
+   "depth": 0.75,
+   "clip_direction_valence": 0.6555,
+   "clip_direction_morality": 0.6118,
+   "clip_direction_morality_beyond_valence": 0.5107,
+   "top10pc_valence": 0.3561,
+   "top10pc_morality": 0.394,
+   "top10pc_morality_beyond_valence": 0.3507
+  },
+  {
+   "model": "L",
+   "layer": 22,
+   "depth": 0.917,
+   "clip_direction_valence": 0.7179,
+   "clip_direction_morality": 0.6853,
+   "clip_direction_morality_beyond_valence": 0.5789,
+   "top10pc_valence": 0.54,
+   "top10pc_morality": 0.462,
+   "top10pc_morality_beyond_valence": 0.3751
+  },
+  {
+   "model": "L",
+   "layer": 24,
+   "depth": 1.0,
+   "clip_direction_valence": 0.7352,
+   "clip_direction_morality": 0.7142,
+   "clip_direction_morality_beyond_valence": 0.5903,
+   "top10pc_valence": 0.5099,
+   "top10pc_morality": 0.4765,
+   "top10pc_morality_beyond_valence": 0.4359
+  },
+  {
+   "model": "G",
+   "layer": 10,
+   "depth": 0.25,
+   "clip_direction_valence": 0.4405,
+   "clip_direction_morality": 0.417,
+   "clip_direction_morality_beyond_valence": 0.3501,
+   "top10pc_valence": 0.3312,
+   "top10pc_morality": 0.3312,
+   "top10pc_morality_beyond_valence": 0.3031
+  },
+  {
+   "model": "G",
+   "layer": 20,
+   "depth": 0.5,
+   "clip_direction_valence": 0.5888,
+   "clip_direction_morality": 0.541,
+   "clip_direction_morality_beyond_valence": 0.4501,
+   "top10pc_valence": 0.3572,
+   "top10pc_morality": 0.3884,
+   "top10pc_morality_beyond_valence": 0.3325
+  },
+  {
+   "model": "G",
+   "layer": 30,
+   "depth": 0.75,
+   "clip_direction_valence": 0.6986,
+   "clip_direction_morality": 0.6545,
+   "clip_direction_morality_beyond_valence": 0.5388,
+   "top10pc_valence": 0.5094,
+   "top10pc_morality": 0.4459,
+   "top10pc_morality_beyond_valence": 0.3928
+  },
+  {
+   "model": "G",
+   "layer": 36,
+   "depth": 0.9,
+   "clip_direction_valence": 0.7522,
+   "clip_direction_morality": 0.7244,
+   "clip_direction_morality_beyond_valence": 0.6042,
+   "top10pc_valence": 0.6101,
+   "top10pc_morality": 0.5632,
+   "top10pc_morality_beyond_valence": 0.4354
+  },
+  {
+   "model": "G",
+   "layer": 40,
+   "depth": 1.0,
+   "clip_direction_valence": 0.7477,
+   "clip_direction_morality": 0.7316,
+   "clip_direction_morality_beyond_valence": 0.6045,
+   "top10pc_valence": 0.529,
+   "top10pc_morality": 0.4971,
+   "top10pc_morality_beyond_valence": 0.433
+  }
+ ],
+ "mutual_knn": [
+  {
+   "model": "S",
+   "layer": 1,
+   "depth": 0.083,
+   "vs_clip": 0.0226,
+   "vs_supervised_vit": 0.027
+  },
+  {
+   "model": "S",
+   "layer": 2,
+   "depth": 0.167,
+   "vs_clip": 0.0304,
+   "vs_supervised_vit": 0.0393
+  },
+  {
+   "model": "S",
+   "layer": 3,
+   "depth": 0.25,
+   "vs_clip": 0.0388,
+   "vs_supervised_vit": 0.0499
+  },
+  {
+   "model": "S",
+   "layer": 4,
+   "depth": 0.333,
+   "vs_clip": 0.0493,
+   "vs_supervised_vit": 0.0628
+  },
+  {
+   "model": "S",
+   "layer": 5,
+   "depth": 0.417,
+   "vs_clip": 0.057,
+   "vs_supervised_vit": 0.0747
+  },
+  {
+   "model": "S",
+   "layer": 6,
+   "depth": 0.5,
+   "vs_clip": 0.0693,
+   "vs_supervised_vit": 0.0905
+  },
+  {
+   "model": "S",
+   "layer": 7,
+   "depth": 0.583,
+   "vs_clip": 0.0819,
+   "vs_supervised_vit": 0.1068
+  },
+  {
+   "model": "S",
+   "layer": 8,
+   "depth": 0.667,
+   "vs_clip": 0.0912,
+   "vs_supervised_vit": 0.119
+  },
+  {
+   "model": "S",
+   "layer": 9,
+   "depth": 0.75,
+   "vs_clip": 0.1008,
+   "vs_supervised_vit": 0.1266
+  },
+  {
+   "model": "S",
+   "layer": 10,
+   "depth": 0.833,
+   "vs_clip": 0.13,
+   "vs_supervised_vit": 0.1665
+  },
+  {
+   "model": "S",
+   "layer": 11,
+   "depth": 0.917,
+   "vs_clip": 0.1611,
+   "vs_supervised_vit": 0.2101
+  },
+  {
+   "model": "S",
+   "layer": 12,
+   "depth": 1.0,
+   "vs_clip": 0.2424,
+   "vs_supervised_vit": 0.3357
+  },
+  {
+   "model": "B",
+   "layer": 1,
+   "depth": 0.083,
+   "vs_clip": 0.0279,
+   "vs_supervised_vit": 0.033
+  },
+  {
+   "model": "B",
+   "layer": 2,
+   "depth": 0.167,
+   "vs_clip": 0.0366,
+   "vs_supervised_vit": 0.0446
+  },
+  {
+   "model": "B",
+   "layer": 3,
+   "depth": 0.25,
+   "vs_clip": 0.0407,
+   "vs_supervised_vit": 0.0514
+  },
+  {
+   "model": "B",
+   "layer": 4,
+   "depth": 0.333,
+   "vs_clip": 0.0525,
+   "vs_supervised_vit": 0.0683
+  },
+  {
+   "model": "B",
+   "layer": 5,
+   "depth": 0.417,
+   "vs_clip": 0.0614,
+   "vs_supervised_vit": 0.0761
+  },
+  {
+   "model": "B",
+   "layer": 6,
+   "depth": 0.5,
+   "vs_clip": 0.0704,
+   "vs_supervised_vit": 0.0897
+  },
+  {
+   "model": "B",
+   "layer": 7,
+   "depth": 0.583,
+   "vs_clip": 0.0925,
+   "vs_supervised_vit": 0.1128
+  },
+  {
+   "model": "B",
+   "layer": 8,
+   "depth": 0.667,
+   "vs_clip": 0.1029,
+   "vs_supervised_vit": 0.129
+  },
+  {
+   "model": "B",
+   "layer": 9,
+   "depth": 0.75,
+   "vs_clip": 0.1212,
+   "vs_supervised_vit": 0.1506
+  },
+  {
+   "model": "B",
+   "layer": 10,
+   "depth": 0.833,
+   "vs_clip": 0.1719,
+   "vs_supervised_vit": 0.2226
+  },
+  {
+   "model": "B",
+   "layer": 11,
+   "depth": 0.917,
+   "vs_clip": 0.2096,
+   "vs_supervised_vit": 0.2868
+  },
+  {
+   "model": "B",
+   "layer": 12,
+   "depth": 1.0,
+   "vs_clip": 0.2792,
+   "vs_supervised_vit": 0.3516
+  },
+  {
+   "model": "L",
+   "layer": 1,
+   "depth": 0.042,
+   "vs_clip": 0.0172,
+   "vs_supervised_vit": 0.0196
+  },
+  {
+   "model": "L",
+   "layer": 4,
+   "depth": 0.167,
+   "vs_clip": 0.0287,
+   "vs_supervised_vit": 0.0348
+  },
+  {
+   "model": "L",
+   "layer": 7,
+   "depth": 0.292,
+   "vs_clip": 0.0372,
+   "vs_supervised_vit": 0.0447
+  },
+  {
+   "model": "L",
+   "layer": 10,
+   "depth": 0.417,
+   "vs_clip": 0.0479,
+   "vs_supervised_vit": 0.061
+  },
+  {
+   "model": "L",
+   "layer": 13,
+   "depth": 0.542,
+   "vs_clip": 0.06,
+   "vs_supervised_vit": 0.0766
+  },
+  {
+   "model": "L",
+   "layer": 16,
+   "depth": 0.667,
+   "vs_clip": 0.0928,
+   "vs_supervised_vit": 0.1141
+  },
+  {
+   "model": "L",
+   "layer": 19,
+   "depth": 0.792,
+   "vs_clip": 0.1416,
+   "vs_supervised_vit": 0.1724
+  },
+  {
+   "model": "L",
+   "layer": 22,
+   "depth": 0.917,
+   "vs_clip": 0.2239,
+   "vs_supervised_vit": 0.2855
+  },
+  {
+   "model": "L",
+   "layer": 24,
+   "depth": 1.0,
+   "vs_clip": 0.2894,
+   "vs_supervised_vit": 0.3334
+  },
+  {
+   "model": "G",
+   "layer": 1,
+   "depth": 0.025,
+   "vs_clip": 0.019,
+   "vs_supervised_vit": 0.022
+  },
+  {
+   "model": "G",
+   "layer": 6,
+   "depth": 0.15,
+   "vs_clip": 0.0363,
+   "vs_supervised_vit": 0.0461
+  },
+  {
+   "model": "G",
+   "layer": 11,
+   "depth": 0.275,
+   "vs_clip": 0.0516,
+   "vs_supervised_vit": 0.0654
+  },
+  {
+   "model": "G",
+   "layer": 16,
+   "depth": 0.4,
+   "vs_clip": 0.0746,
+   "vs_supervised_vit": 0.0979
+  },
+  {
+   "model": "G",
+   "layer": 21,
+   "depth": 0.525,
+   "vs_clip": 0.0929,
+   "vs_supervised_vit": 0.1182
+  },
+  {
+   "model": "G",
+   "layer": 26,
+   "depth": 0.65,
+   "vs_clip": 0.1402,
+   "vs_supervised_vit": 0.1822
+  },
+  {
+   "model": "G",
+   "layer": 31,
+   "depth": 0.775,
+   "vs_clip": 0.2122,
+   "vs_supervised_vit": 0.272
+  },
+  {
+   "model": "G",
+   "layer": 36,
+   "depth": 0.9,
+   "vs_clip": 0.2852,
+   "vs_supervised_vit": 0.3447
+  },
+  {
+   "model": "G",
+   "layer": 40,
+   "depth": 1.0,
+   "vs_clip": 0.2712,
+   "vs_supervised_vit": 0.3077
+  }
+ ],
+ "mutual_knn_supervised_vit_vs_clip": 0.2765,
+ "top10pc_comparators_G37": {
+  "brightness": 0.3306,
+  "edge_density": 0.6029
+ },
+ "two_way_coco": {
+  "valence": {
+   "clip_probe_on_translated_dinov2": {
+    "rho": 0.6637,
+    "lo": 0.6397,
+    "hi": 0.6866
+   },
+   "dinov2_probe_on_translated_clip": {
+    "rho": 0.7437,
+    "lo": 0.7288,
+    "hi": 0.7608
+   },
+   "dinov2_own_probe": {
+    "rho": 0.7607,
+    "lo": 0.7423,
+    "hi": 0.7774
+   }
+  },
+  "morality": {
+   "clip_probe_on_translated_dinov2": {
+    "rho": 0.6229,
+    "lo": 0.5975,
+    "hi": 0.6481
+   },
+   "dinov2_probe_on_translated_clip": {
+    "rho": 0.7142,
+    "lo": 0.6949,
+    "hi": 0.73
+   },
+   "dinov2_own_probe": {
+    "rho": 0.7353,
+    "lo": 0.7169,
+    "hi": 0.7514
+   }
+  },
+  "morality_beyond_valence": {
+   "clip_probe_on_translated_dinov2": {
+    "rho": 0.5336,
+    "lo": 0.5061,
+    "hi": 0.5583
+   },
+   "dinov2_probe_on_translated_clip": {
+    "rho": 0.5737,
+    "lo": 0.5461,
+    "hi": 0.5969
+   },
+   "dinov2_own_probe": {
+    "rho": 0.6088,
+    "lo": 0.585,
+    "hi": 0.6317
+   }
+  }
+ }
+}

@@ -1,4 +1,0 @@
-target,dinov2_random_folds,dinov2_heldout_groups,objects_heldout_groups,clip_heldout_groups
-valence,0.7607,0.7361,0.5916,0.8842
-morality,0.7353,0.7041,0.5648,0.8592
-mbv,0.6088,0.5679,0.4693,0.6867

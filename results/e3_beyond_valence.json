@@ -1,0 +1,122 @@
+{
+ "_source": "Numbers from the original Colab runs (Nov 2026), reorganised into the layout the current scripts write. Rerunning the script regenerates this file.",
+ "n_images": 2940,
+ "valence_morality_rho": 0.8652,
+ "definition": {
+  "linear on valence": {
+   "share_of_morality_variance": 0.2432,
+   "dinov2": {
+    "rho": 0.5918
+   }
+  },
+  "spline on valence": {
+   "share_of_morality_variance": 0.233,
+   "dinov2": {
+    "rho": 0.6088
+   },
+   "rho_with_valence": 0.0251
+  },
+  "spline on valence + arousal": {
+   "share_of_morality_variance": 0.2248,
+   "dinov2": {
+    "rho": 0.5842
+   }
+  }
+ },
+ "reliability": {
+  "valence": {
+   "reliability": 0.9698,
+   "noise_share": 0.0302,
+   "noise_ceiling_rho": 0.9848,
+   "dinov2": 0.7607
+  },
+  "morality": {
+   "reliability": 0.954,
+   "noise_share": 0.046,
+   "noise_ceiling_rho": 0.9767,
+   "dinov2": 0.7353
+  },
+  "MBV": {
+   "reliability": 0.702,
+   "noise_share": 0.298,
+   "noise_ceiling_rho": 0.8378,
+   "dinov2": 0.6088
+  },
+  "MBV after controls": {
+   "reliability": 0.5527,
+   "noise_share": 0.4473,
+   "noise_ceiling_rho": 0.7434,
+   "dinov2": 0.1631
+  },
+  "MBV after controls, errors fully correlated": {
+   "reliability": 0.146,
+   "noise_share": 0.854,
+   "noise_ceiling_rho": 0.3821
+  }
+ },
+ "permutation": {
+  "observed": 0.1631,
+  "null_mean": -0.0036,
+  "null_sd": 0.0259,
+  "null_max": 0.0483,
+  "z": 6.45,
+  "p": 0.005,
+  "n_shuffles": 200
+ },
+ "mbv_after_controls": {
+  "dinov2": {
+   "rho": 0.1631,
+   "lo": 0.1281,
+   "hi": 0.1961
+  },
+  "clip": {
+   "rho": 0.3748,
+   "lo": 0.3439,
+   "hi": 0.4045
+  }
+ },
+ "precision_split": {
+  "more_precise_half": {
+   "rho": 0.1929,
+   "lo": 0.1472,
+   "hi": 0.233
+  },
+  "less_precise_half": {
+   "rho": 0.136,
+   "lo": 0.0865,
+   "hi": 0.1856
+  }
+ },
+ "foundations": {
+  "harm": {
+   "morality": 0.0133,
+   "MBV": 0.4351,
+   "MBV after controls": 0.2592
+  },
+  "fairness": {
+   "morality": -0.1002,
+   "MBV": 0.3551,
+   "MBV after controls": 0.149
+  },
+  "ingroup": {
+   "morality": 0.2903,
+   "MBV": 0.4726,
+   "MBV after controls": 0.232
+  },
+  "authority": {
+   "morality": 0.2786,
+   "MBV": 0.5283,
+   "MBV after controls": 0.2434
+  },
+  "purity": {
+   "morality": -0.1325,
+   "MBV": 0.3756,
+   "MBV after controls": 0.1764
+  },
+  "arousal": {
+   "morality": -0.4573,
+   "MBV": 0.0924,
+   "MBV after controls": 0.0016
+  }
+ }
+}

@@ -1,0 +1,517 @@
+{
+ "_source": "Numbers from the original Colab runs (Nov 2026), reorganised into the layout the current scripts write. Rerunning the script regenerates this file.",
+ "map": "linear, DINOv2-g layer 37 -> CLIP ViT-L/14 image embeddings, fit on 5,000 unrated COCO val2017 photos",
+ "check": {
+  "retrieval_512_component_map": {
+   "mean_cosine": 0.7709,
+   "mean_cosine_random_pairs": 0.587,
+   "top1": 0.3575,
+   "top5": 0.5799
+  },
+  "valence_probe_on_translated": 0.722
+ },
+ "valence": {
+  "top": [
+   [
+    "contentment",
+    "positive emotion",
+    0.1596
+   ],
+   [
+    "cheerfulness",
+    "positive emotion",
+    0.1525
+   ],
+   [
+    "joy",
+    "positive emotion",
+    0.132
+   ],
+   [
+    "delight",
+    "positive emotion",
+    0.1137
+   ],
+   [
+    "happiness",
+    "positive emotion",
+    0.1102
+   ],
+   [
+    "tenderness",
+    "virtue",
+    0.0427
+   ],
+   [
+    "nurturing",
+    "virtue",
+    0.0408
+   ],
+   [
+    "laughter",
+    "positive emotion",
+    0.0275
+   ],
+   [
+    "fairness",
+    "virtue",
+    0.0219
+   ],
+   [
+    "playfulness",
+    "positive emotion",
+    -0.0119
+   ],
+   [
+    "a good meal",
+    "positive emotion",
+    -0.03
+   ],
+   [
+    "charity",
+    "virtue",
+    -0.0571
+   ],
+   [
+    "kindness",
+    "virtue",
+    -0.0628
+   ],
+   [
+    "mercy",
+    "virtue",
+    -0.0769
+   ],
+   [
+    "care",
+    "virtue",
+    -0.0771
+   ]
+  ],
+  "bottom": [
+   [
+    "an accident",
+    "negative emotion",
+    -0.5949
+   ],
+   [
+    "decay",
+    "negative emotion",
+    -0.5632
+   ],
+   [
+    "poverty",
+    "negative emotion",
+    -0.5365
+   ],
+   [
+    "pain",
+    "negative emotion",
+    -0.5257
+   ],
+   [
+    "illness",
+    "negative emotion",
+    -0.4981
+   ],
+   [
+    "vandalism",
+    "vice",
+    -0.4811
+   ],
+   [
+    "a disaster",
+    "negative emotion",
+    -0.4694
+   ],
+   [
+    "oppression",
+    "vice",
+    -0.4662
+   ],
+   [
+    "self-sacrifice",
+    "virtue",
+    -0.4651
+   ],
+   [
+    "slavery",
+    "vice",
+    -0.4575
+   ],
+   [
+    "exploitation",
+    "vice",
+    -0.4566
+   ],
+   [
+    "a city street",
+    "thing",
+    -0.4555
+   ],
+   [
+    "violence",
+    "vice",
+    -0.4502
+   ],
+   [
+    "a train",
+    "thing",
+    -0.4404
+   ],
+   [
+    "selfishness",
+    "vice",
+    -0.4401
+   ]
+  ],
+  "auc": {
+   "virtue > vice": 0.8122,
+   "virtue > positive emotion": 0.3633,
+   "negative emotion > vice": 0.2467
+  },
+  "mean_by_group": {
+   "virtue": -0.1643,
+   "vice": -0.3077,
+   "positive emotion": -0.077,
+   "negative emotion": -0.4171,
+   "thing": -0.2714
+  }
+ },
+ "morality": {
+  "top": [
+   [
+    "fairness",
+    "virtue",
+    0.1526
+   ],
+   [
+    "cheerfulness",
+    "positive emotion",
+    0.1467
+   ],
+   [
+    "delight",
+    "positive emotion",
+    0.1076
+   ],
+   [
+    "joy",
+    "positive emotion",
+    0.1015
+   ],
+   [
+    "laughter",
+    "positive emotion",
+    0.0867
+   ],
+   [
+    "volunteering",
+    "virtue",
+    0.0652
+   ],
+   [
+    "happiness",
+    "positive emotion",
+    0.0559
+   ],
+   [
+    "helping others",
+    "virtue",
+    0.0538
+   ],
+   [
+    "contentment",
+    "positive emotion",
+    0.0356
+   ],
+   [
+    "nurturing",
+    "virtue",
+    0.0346
+   ],
+   [
+    "cooperation",
+    "virtue",
+    0.0301
+   ],
+   [
+    "gratitude",
+    "virtue",
+    0.0215
+   ],
+   [
+    "decency",
+    "virtue",
+    0.0134
+   ],
+   [
+    "compassion",
+    "virtue",
+    0.0016
+   ],
+   [
+    "solidarity",
+    "virtue",
+    -0.0082
+   ]
+  ],
+  "bottom": [
+   [
+    "decay",
+    "negative emotion",
+    -0.5344
+   ],
+   [
+    "a bottle",
+    "thing",
+    -0.5189
+   ],
+   [
+    "a bicycle",
+    "thing",
+    -0.5025
+   ],
+   [
+    "poverty",
+    "negative emotion",
+    -0.4942
+   ],
+   [
+    "neglect",
+    "vice",
+    -0.4897
+   ],
+   [
+    "a phone",
+    "thing",
+    -0.4848
+   ],
+   [
+    "vandalism",
+    "vice",
+    -0.4844
+   ],
+   [
+    "a car",
+    "thing",
+    -0.4838
+   ],
+   [
+    "dirt",
+    "negative emotion",
+    -0.469
+   ],
+   [
+    "an accident",
+    "negative emotion",
+    -0.4647
+   ],
+   [
+    "boredom",
+    "negative emotion",
+    -0.4561
+   ],
+   [
+    "a train",
+    "thing",
+    -0.4557
+   ],
+   [
+    "a storm",
+    "negative emotion",
+    -0.4532
+   ],
+   [
+    "loneliness",
+    "negative emotion",
+    -0.4463
+   ],
+   [
+    "a boat",
+    "thing",
+    -0.4421
+   ]
+  ],
+  "auc": {
+   "virtue > vice": 0.83,
+   "virtue > positive emotion": 0.5733,
+   "negative emotion > vice": 0.1933
+  },
+  "mean_by_group": {
+   "virtue": -0.0861,
+   "vice": -0.2497,
+   "positive emotion": -0.123,
+   "negative emotion": -0.3868,
+   "thing": -0.3315
+  }
+ },
+ "morality_beyond_valence": {
+  "top": [
+   [
+    "volunteering",
+    "virtue",
+    0.5397
+   ],
+   [
+    "helping others",
+    "virtue",
+    0.4494
+   ],
+   [
+    "heroism",
+    "virtue",
+    0.4154
+   ],
+   [
+    "cooperation",
+    "virtue",
+    0.3842
+   ],
+   [
+    "slavery",
+    "vice",
+    0.3689
+   ],
+   [
+    "respect",
+    "virtue",
+    0.3466
+   ],
+   [
+    "gratitude",
+    "virtue",
+    0.3337
+   ],
+   [
+    "fairness",
+    "virtue",
+    0.3285
+   ],
+   [
+    "compassion",
+    "virtue",
+    0.3244
+   ],
+   [
+    "humility",
+    "virtue",
+    0.312
+   ],
+   [
+    "a celebration",
+    "positive emotion",
+    0.2856
+   ],
+   [
+    "solidarity",
+    "virtue",
+    0.2763
+   ],
+   [
+    "humiliation",
+    "vice",
+    0.2579
+   ],
+   [
+    "grief",
+    "negative emotion",
+    0.2533
+   ],
+   [
+    "a uniform",
+    "thing",
+    0.2238
+   ]
+  ],
+  "bottom": [
+   [
+    "beauty",
+    "positive emotion",
+    -0.5524
+   ],
+   [
+    "a bird",
+    "thing",
+    -0.46
+   ],
+   [
+    "a pizza",
+    "thing",
+    -0.4597
+   ],
+   [
+    "a cat",
+    "thing",
+    -0.447
+   ],
+   [
+    "a phone",
+    "thing",
+    -0.444
+   ],
+   [
+    "a dog",
+    "thing",
+    -0.4155
+   ],
+   [
+    "a horse",
+    "thing",
+    -0.4154
+   ],
+   [
+    "a flower",
+    "thing",
+    -0.4007
+   ],
+   [
+    "a shoe",
+    "thing",
+    -0.3996
+   ],
+   [
+    "an airplane",
+    "thing",
+    -0.3873
+   ],
+   [
+    "a forest",
+    "thing",
+    -0.3755
+   ],
+   [
+    "a beach",
+    "thing",
+    -0.3741
+   ],
+   [
+    "a bottle",
+    "thing",
+    -0.3726
+   ],
+   [
+    "a good meal",
+    "positive emotion",
+    -0.3612
+   ],
+   [
+    "boredom",
+    "negative emotion",
+    -0.3595
+   ]
+  ],
+  "auc": {
+   "virtue > vice": 0.6667,
+   "virtue > positive emotion": 0.84,
+   "negative emotion > vice": 0.38
+  },
+  "mean_by_group": {
+   "virtue": 0.1549,
+   "vice": 0.0508,
+   "positive emotion": -0.1209,
+   "negative emotion": -0.0273,
+   "thing": -0.21
+  }
+ }
+}
